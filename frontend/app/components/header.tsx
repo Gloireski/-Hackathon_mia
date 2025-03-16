@@ -7,7 +7,7 @@
 import {useState} from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAppContext } from '../context/appContext';
+import { useAppContext } from '../context/AppContext';
 
 /**
  * Composant Header réutilisable
@@ -27,7 +27,7 @@ export default function Header() {
      */
     async function logOut() {
         // Effacement des données utilisateur du contexte
-        setUser(null, null);
+        setUser(null, null)
 
         // Appel de l'API de déconnexion
         try {
@@ -48,7 +48,7 @@ export default function Header() {
         setMenuOpen(false);
 
         // Redirection vers la page d'accueil
-        router.push('/');
+        router.replace('/');
     }
 
     return (

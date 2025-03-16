@@ -4,59 +4,13 @@
  */
 'use client';
 
-import { useState } from 'react';
-import { PencilIcon } from '@heroicons/react/24/outline';
-import Link from 'next/link';
-import TweetsList from "@/components/TweetList";
-import { gql, useQuery } from "@apollo/client";
-import CommentsList from "@/components/CommentsList";
-
-/**
- * Requête GraphQL pour récupérer les informations de l'utilisateur connecté
- * et ses différents contenus (tweets, commentaires, likes, favoris)
- */
-const GET_USER_INFO = gql`
-  query User {
-    userTimeline {
-      user {
-        id
-        username
-        email
-        profile_img
-        bio
-      }
-      tweets {
-        id
-        content
-        media
-        createdAt
-        
-        author {
-          id
-          username
-          profile_img
-        }
-      }
-      comments {
-        id
-        content
-        author {
-          id
-          username
-          profile_img
-        }
-        tweetId
-        }
-      likedTweets {
-        id
-      }
-      bookmarks {
-        id
-        content
-      }
-    }
-  }
-`;
+import { useState } from 'react'
+import { PencilIcon } from '@heroicons/react/24/outline'
+import Link from 'next/link'
+import TweetsList from "@/components/TweetList"
+import { gql, useQuery } from "@apollo/client"
+import CommentsList from "@/components/CommentsList"
+import { GET_USER_INFO } from '../graphql/queries'
 
 /**
  * Composant de la page de profil

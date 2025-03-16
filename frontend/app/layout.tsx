@@ -7,7 +7,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import Header from "./components/header"
 import Footer from "./components/footer"
-import { AppProvider } from "@/app/context/appContext"
+import { AppProvider } from "@/app/context/AppContext"
 import { ApolloProviderWrapper } from "@/app/context/ApolloProviderWrapper"
 import ReactQueryProvider from "./context/QueryClientProvider"
 

@@ -6,7 +6,7 @@
 
 import { ApolloProvider } from "@apollo/client";
 import { createApolloClient } from "@/app/apollo-client";
-import { useAppContext } from "@/app/context/appContext";
+import { useAppContext } from "@/app/context/AppContext";
 import { ReactNode } from 'react'
 
 /**

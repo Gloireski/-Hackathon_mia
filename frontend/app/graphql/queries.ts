@@ -21,7 +21,7 @@ export const GET_TWEET = gql`
       isLiked
       isRetweeted
       author {
-        id
+        _id
         username
         handle
         profile_img
@@ -31,7 +31,7 @@ export const GET_TWEET = gql`
         content
         createdAt
         author {
-          id
+          _id
           username
           handle
           profile_img
@@ -39,4 +39,97 @@ export const GET_TWEET = gql`
       }
     }
   }
-`;
+`
+/**
+ * Requête GraphQL pour récupérer les tweets de la timeline
+ */
+export const GET_TWEETS = gql`
+  query GetTweets {
+    getTimeline {
+      id
+      content
+      media
+      likes
+      retweets
+      isRetweet
+      isRetweeted
+      isLiked
+      isFollowing
+      createdAt
+      comments
+      author {
+        profile_img
+        _id
+        username
+      }
+    }
+  }
+`
+export const GET_ALL_TWEETS = gql`
+  query GET_ALL_TWEETS {
+    publicTimeline {
+      id
+      content
+      media
+      likes
+      retweets
+      isRetweet
+      isRetweeted
+      isLiked
+      isFollowing
+      createdAt
+      comments
+      author {
+        profile_img
+        _id
+        username
+      }
+    }
+  }
+`
+/**
+ * Requête GraphQL pour récupérer les informations de l'utilisateur connecté
+ * et ses différents contenus (tweets, commentaires, likes, favoris)
+ */
+export const GET_USER_INFO = gql`
+  query User {
+    userTimeline {
+      user {
+        _id
+        username
+        email
+        profile_img
+        bio
+      }
+      tweets {
+        id
+        content
+        media
+        createdAt
+        
+        author {
+          _id
+          username
+          profile_img
+        }
+      }
+      comments {
+        id
+        content
+        author {
+          _id
+          username
+          profile_img
+        }
+        tweetId
+        }
+      likedTweets {
+        id
+      }
+      bookmarks {
+        id
+        content
+      }
+    }
+  }
+`

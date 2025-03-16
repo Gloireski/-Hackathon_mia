@@ -2,55 +2,29 @@
  * Composant de modal pour afficher un tweet et ses commentaires
  * Permet également d'ajouter des commentaires
  */
-"use client";
+"use client"
 
 import {
     HeartIcon,
     ChatBubbleOvalLeftIcon,
     ArrowPathIcon,
     XMarkIcon
-} from "@heroicons/react/24/outline";
-import { useRef, useEffect, useState } from "react";
-import { useAppContext } from "@/app/context/appContext";
-
-/**
- * Interface pour les données d'un tweet
- * @interface TweetData
- */
-interface TweetData {
-    id: number;
-    username: string;
-    handle: string;
-    content: string;
-    time: string;
-    isFollowing: boolean;
-}
-
-/**
- * Interface pour les données d'un commentaire
- * @interface Comment
- */
-interface Comment {
-    id: number;
-    content: string;
-    id_tweet: number;
-    author: {
-        id: string;
-        username: string;
-        handle: string;
-        profile_img: string;
-    };
-    createdAt: string;
-}
+} from "@heroicons/react/24/outline"
+import { useRef, useEffect, useState } from "react"
+import { useAppContext } from "@/app/context/AppContext"
+import { Comment, TweetData } from "@/app/type/types"
+import { timeAgo } from "@/app/utils/timeAgo"
 
 /**
  * Interface pour les propriétés du composant TweetModal
  * @interface TweetModalProps
  */
 interface TweetModalProps {
-    tweet: TweetData;
-    comments: Comment[];
-    onClose: () => void;
+    tweet: TweetData
+    comments: Comment[]
+    onClose: () => void
+    loading: boolean
+    error: any
 }
 
 /**
@@ -58,24 +32,30 @@ interface TweetModalProps {
  * @param {TweetModalProps} props - Propriétés du composant
  * @returns {JSX.Element} - Composant rendu
  */
-export default function TweetModal({ tweet, comments, onClose }: TweetModalProps) {
+export default function TweetModal({ tweet, comments, loading, error, onClose }: TweetModalProps) {
     // États pour la gestion des commentaires
-    const [newComment, setNewComment] = useState("");
-    const [commentList, setCommentList] = useState<Comment[]>(comments);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [newComment, setNewComment] = useState("")
+    const [commentList, setCommentList] = useState<Comment[]>(comments)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    console.log("comments", commentList)// Debug
     
     // Référence pour le champ de saisie de commentaire
-    const commentInputRef = useRef<HTMLTextAreaElement>(null);
+    const commentInputRef = useRef<HTMLTextAreaElement>(null)
     
     // Contexte global de l'application
-    const {appState} = useAppContext();
+    const {appState} = useAppContext()
+
+    // Effet pour mettre à jour la liste des commentaires
+    useEffect(() => {
+        setCommentList(comments);
+    }, [comments]);    
 
     /**
      * Effet pour mettre le focus dans le champ de saisie au montage du modal
      */
     useEffect(() => {
         if (commentInputRef.current) {
-            commentInputRef.current.focus();
+            commentInputRef.current.focus()
         }
     }, []);
 
@@ -85,7 +65,7 @@ export default function TweetModal({ tweet, comments, onClose }: TweetModalProps
      */
     const handleCommentSubmit = async () => {
         // Vérification qu'il y a un commentaire à soumettre et qu'on n'est pas déjà en train de soumettre
-        if (!newComment.trim() || isSubmitting) return;
+        if (!newComment.trim() || isSubmitting) return
 
         setIsSubmitting(true);
       
@@ -115,7 +95,7 @@ export default function TweetModal({ tweet, comments, onClose }: TweetModalProps
             setNewComment(""); // Réinitialisation du champ de saisie
         } catch (error) {
             console.error("Erreur:", error);
-            alert(`Impossible d'ajouter le commentaire : ${error.message}`);
+            alert(`Impossible d'ajouter le commentaire : ${error.message}`)
         } finally {
             setIsSubmitting(false);
         }
@@ -193,26 +173,28 @@ export default function TweetModal({ tweet, comments, onClose }: TweetModalProps
                 </div>
 
                 {/* Liste des commentaires */}
+                {loading? <p className="text-center text-gray-500 mt-4">Chargement...</p> : (
                 <div className="space-y-4 pt-4">
                     <h4 className="font-semibold text-lg">Commentaires</h4>
                     {commentList.length > 0 ? (
-                        commentList.map((comment) => (
-                            <div key={comment.id} className="p-3 border rounded-lg">
+                        commentList.map((comment, index) => (
+                            <div key={comment.id | index} className="p-3 border rounded-lg">
                                 <div className="flex items-center gap-2">
-                                    <img src={comment.author.profile_img} alt="Profile" className="w-8 h-8 rounded-full" />
+                                    <img src={comment.author?.profile_img} alt="Profile" className="w-8 h-8 rounded-full" />
                                     <div>
-                                        <span className="font-bold">{comment.author.username}</span>
-                                        <span className="text-gray-500 text-sm"> {comment.author.handle}</span>
+                                        <span className="font-bold">{comment.author?.username}</span>
+                                        <span className="text-gray-500 text-sm"> @{comment.author?.handle}</span>
                                     </div>
                                 </div>
                                 <p className="text-gray-700 mt-2">{comment.content}</p>
-                                <span className="text-gray-500 text-xs">{comment.createdAt}</span>
+                                <span className="text-gray-500 text-xs">{timeAgo(comment.createdAt, "fr")}</span>
                             </div>
                         ))
                     ) : (
                         <p className="text-gray-500">Aucun commentaire pour l'instant.</p>
                     )}
                 </div>
+                )}
             </div>
         </div>
     );

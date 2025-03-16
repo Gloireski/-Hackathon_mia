@@ -5,7 +5,7 @@
 'use client';
 
 import { useEffect, useState } from 'react'
-import { useAppContext } from '../context/appContext'
+import { useAppContext } from '../context/AppContext'
 import { useRouter } from "next/navigation"
 import { LOGIN_MUTATION } from "../graphql/mutations"
 import { LoginResponse, LoginVariables } from "../type/auth"
@@ -46,33 +46,6 @@ export default function LoginPage() {
         setErrorMessage('');
 
         try {
-            // Version commentée: méthode alternative utilisant l'API REST
-            // // Make a POST request to the login endpoint
-            // const response = await fetch('http://localhost:5000/api/auth/login', {
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     body: JSON.stringify({ email, password }),
-            // });
-
-            // const data = await response.json();
-
-            // if (!response.ok) {
-            //     // Handle error response
-            //     setErrorMessage(data.message || 'Login failed. Please try again.');
-            //     return;
-            // }
-
-            // // Handle successful login using the AppContext
-            // if (data.user && data.tokens) {
-            //     console.log(data)
-            //     // Update the AppContext with user data and token
-            //     setUser(data.user, data.tokens.accessToken);
-            //     router.push('/');
-            // } else {
-            //     setErrorMessage('Invalid response from server');
-            // }
             
             // Utilisation de la mutation GraphQL pour la connexion
             const { data, loading } = await login({ variables: { email, password } })

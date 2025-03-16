@@ -2,41 +2,15 @@
  * Composant de liste de tweets
  * Affiche une liste de tweets avec la possibilité d'ouvrir un tweet spécifique
  */
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { useLazyQuery } from "@apollo/client";
-import Tweet from "./Tweet";
-import TweetModal from "./TweetModal";
-import { GET_TWEET } from "../app/graphql/queries";
+import { useState, useEffect } from "react"
+import { useLazyQuery, useQuery } from "@apollo/client"
+import Tweet from "./Tweet"
+import TweetModal from "./TweetModal"
+import { GET_TWEET } from "../app/graphql/queries"
 
-/**
- * Interface pour les données d'un tweet
- * @interface TweetData
- */
-interface TweetData {
-    id: number;
-    username: string;
-    handle: string;
-    content: string;
-    time: string;
-    isFollowing: boolean;
-    profile_img: string;
-    onFollowToggle: () => void;
-}
-
-/**
- * Interface pour les données d'un commentaire
- * @interface Comment
- */
-interface Comment {
-    id_interaction: number;
-    content: string;
-    id_tweet: number;
-    id_utilisateur: number;
-    horodatage: string;
-}
-
+import { TweetData, Comment } from "../app/type/types"
 /**
  * Interface pour les propriétés du composant TweetsList
  * @interface TweetsListProps
@@ -64,15 +38,23 @@ export default function TweetsList({ tweets, loading }: TweetsListProps) {
     const [fetchTweet, { data, loading: tweetLoading, error }] = useLazyQuery(GET_TWEET, {
         fetchPolicy: "network-only",
     });
-
+    /**
+     * Utilisation de useQuery pour récupérer les détails d'un tweet
+     */
+    // const { data, loading: tweetLoading, error } = useQuery(GET_TWEET, {
+    //     variables: { id: selectedTweet?.id },
+    //     skip: !selectedTweet,
+    //     fetchPolicy: "network-only",
+    // });
     /**
      * Ouvre le modal d'un tweet et charge ses commentaires
      * @param {TweetData} tweet - Tweet à afficher dans le modal
      */
     const openTweet = (tweet: TweetData) => {
-        setSelectedTweet(tweet);
-        setComments([]); // Réinitialise les commentaires avant d'en charger de nouveaux
-        fetchTweet({ variables: { id: tweet.id } });
+        console.log("Opening tweet:", tweet)
+        setSelectedTweet(tweet)
+        // setComments([]) // Réinitialise les commentaires avant d'en charger de nouveaux
+        fetchTweet({ variables: { id: tweet.id } })
     };
 
     /**

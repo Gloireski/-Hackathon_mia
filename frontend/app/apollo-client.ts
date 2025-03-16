@@ -13,7 +13,7 @@ import { setContext } from '@apollo/client/link/context';
 export const createApolloClient = (token: string | null) => {
   // Création du lien HTTP pointant vers le serveur GraphQL
   const httpLink = new HttpLink({
-      uri: "http://localhost:5000/graphql", // URL du serveur GraphQL
+      uri: "http://localhost:4000/graphql", // URL du serveur GraphQL
   });
 
   /**

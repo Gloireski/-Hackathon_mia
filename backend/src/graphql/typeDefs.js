@@ -14,7 +14,7 @@ const typeDefs = gql`
 
   # Type pour la réponse de tweet avec des informations supplémentaires
   type TweetResponse {
-    id: ID!
+    id: ID
     content: String
     media: String
     createdAt: String
@@ -64,12 +64,13 @@ const typeDefs = gql`
     id: ID!
     content: String!
     author: User!
+    createdAt: String!
     tweetId: ID!
   }
 
   # Type pour les utilisateurs
   type User {
-    id: ID!
+    _id: ID!
     username: String!
     handle: String!
     email: String!
@@ -78,12 +79,13 @@ const typeDefs = gql`
     bio: String
     profile_img: String
     banniere_img: String
-    followers: String
+    followers: [String]
+    followings: [String]
   }
   
   # Type simplifié pour les informations de base d'un utilisateur
   type UserBasicInfo {
-    id: ID!
+    _id: ID!
     username: String
     handle: String
     profile_img: String
@@ -91,7 +93,7 @@ const typeDefs = gql`
   
   # Type pour les réponses de commentaires
   type CommentResponse {
-    id: ID!
+    id: ID
     content: String
     createdAt: String
     author: UserBasicInfo
@@ -113,6 +115,9 @@ const typeDefs = gql`
     
     # Récupère le fil d'actualité personnalisé
     getTimeline: [TimelineResponse!]!
+
+    #fil public
+    publicTimeline: [TimelineResponse!]!
     
     # Récupère les tweets d'un utilisateur spécifique
     getUserTweets(userId: ID!): [Tweet!]!
@@ -185,10 +190,10 @@ const typeDefs = gql`
   # Type pour le fil d'activité d'un utilisateur
   type userTimeline {
     user: User!
-    tweets: [Tweet!]!
+    tweets: [TimelineResponse!]!
     comments: [Comment!]!
-    likedTweets: [Tweet!]!
-    bookmarks: [Tweet!]!
+    likedTweets: [TimelineResponse!]!
+    bookmarks: [TimelineResponse!]!
   }
 `;
 

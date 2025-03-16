@@ -4,23 +4,26 @@
  */
 'use client';
 
-import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-import { User } from '../type/user';
+import { createContext, useState, useContext, ReactNode, useEffect } from 'react'
+import { User } from '../type/user'
+import { jwtDecode } from 'jwt-decode'
+
 
 /**
  * Interface définissant la structure du contexte de l'application
  * @interface AppContextType
  */
 interface AppContextType {
-    query: string;                                   // Requête de recherche
-    setQuery: (query: string) => void;               // Fonction pour définir la requête
-    isLoading: boolean;                              // État de chargement global
-    setIsLoading: (isLoading: boolean) => void;      // Fonction pour définir l'état de chargement
-    error: Error | null;                             // Erreur globale
-    setError: (error: Error | null) => void;         // Fonction pour définir l'erreur
-    appState: AppState | null;                       // État global de l'application
-    setAppState: (appState: AppState) => void;       // Fonction pour définir l'état global
-    setUser: (user: User | null, token: string | null) => void; // Fonction pour définir l'utilisateur
+    query: string                                   // Requête de recherche
+    setQuery: (query: string) => void               // Fonction pour définir la requête
+    isLoading: boolean                              // État de chargement global
+    setIsLoading: (isLoading: boolean) => void      // Fonction pour définir l'état de chargement
+    error: Error | null                            // Erreur globale
+    setError: (error: Error | null) => void         // Fonction pour définir l'erreur
+    appState: AppState | null                       // État global de l'application
+    setAppState: (appState: AppState) => void       // Fonction pour définir l'état global
+    setUser: (user: User | null, token: string | null) => void // Fonction pour définir l'utilisateur
+    logout: () => void                             // Fonction pour déconnecter l'utilisateur
 }
 
 /**
@@ -43,7 +46,15 @@ const defaultState: AppState = {
     isLoggedIn: false,
     token: null,
 };
-
+function isTokenExpired(token: string | null) {
+    if (!token) return true; // Treat missing token as expired
+    try {
+        const decoded: any = jwtDecode(token)
+        return decoded.exp * 1000 < Date.now()
+    } catch (error) {
+        return true; // Invalid token should be treated as expired
+    }
+}
 /**
  * Création du contexte avec une valeur initiale undefined
  */
@@ -69,7 +80,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const savedState = localStorage.getItem('appState');
-            setAppState(savedState ? JSON.parse(savedState) : defaultState);
+            const parsedState = savedState ? JSON.parse(savedState) : defaultState;
+
+            // Check if token is expired
+            if (isTokenExpired(parsedState.token)) {
+                logout();
+            } else {
+                setAppState(parsedState);
+            }
         }
     }, []);
 
@@ -89,13 +107,39 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
      * @param {string|null} token - Token d'authentification ou null
      */
     const setUser = (user: User | null, token: string | null) => {
+        if (isTokenExpired(token)) {
+            logout()
+            return
+        }
         setAppState(prevState => ({
             ...prevState!,
             user,
             token,
             isLoggedIn: !!user,
         }));
-    };
+    }
+
+    // Logout function
+    const logout = () => {
+        setAppState(defaultState)
+        localStorage.removeItem('appState')
+    }
+
+    // Automatically log out when token expires
+        useEffect(() => {
+            if (appState?.token) {
+                const expiryTime = jwtDecode<any>(appState.token).exp * 1000
+                console.log('Token expires at:', new Date(expiryTime))
+                const timeout = expiryTime - Date.now();
+    
+                if (timeout > 0) {
+                    const timer = setTimeout(logout, timeout)
+                    return () => clearTimeout(timer) // Cleanup on unmount
+                } else {
+                    logout()
+                }
+            }
+        }, [appState?.token])
 
     // Valeur du contexte à fournir aux composants enfants
     return (
@@ -109,6 +153,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             appState: appState ?? defaultState, // Utilise defaultState si appState est null
             setAppState,
             setUser,
+            logout
         }}>
             {children}
         </AppContext.Provider>

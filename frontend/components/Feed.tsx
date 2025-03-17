@@ -6,7 +6,7 @@ import { Image, FileImage, Smile, BarChart, MapPin, Camera } from "lucide-react"
 import TweetsList from "./TweetList";
 import Tabs from "./Tabs";
 import { useAppContext } from "@/app/context/AppContext";
-import { GET_TWEETS, GET_ALL_TWEETS } from "@/app/graphql/queries";
+import { GET_TWEETS, GET_ALL_TWEETS } from "@/graphql/queries";
 
 export default function Feed() {
   const [activeTab, setActiveTab] = useState("forYou");

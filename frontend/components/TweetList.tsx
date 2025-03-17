@@ -8,9 +8,9 @@ import { useState, useEffect } from "react"
 import { useLazyQuery, useQuery } from "@apollo/client"
 import Tweet from "./Tweet"
 import TweetModal from "./TweetModal"
-import { GET_TWEET } from "../app/graphql/queries"
+import { GET_TWEET } from "../graphql/queries"
 
-import { TweetData, Comment } from "../app/type/types"
+import { TweetData, Comment } from "../type/types"
 /**
  * Interface pour les propriétés du composant TweetsList
  * @interface TweetsListProps

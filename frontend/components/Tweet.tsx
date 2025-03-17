@@ -14,10 +14,10 @@ import {
   ArrowPathIcon as ArrowPathSolid 
 } from "@heroicons/react/24/solid";
 
-import { FOLLOW_MUTATION, LIKE_TWEET, RE_TWEET  } from "../app/graphql/mutations"
+import { FOLLOW_MUTATION, LIKE_TWEET, RE_TWEET  } from "../graphql/mutations"
 import { useMutation } from "@apollo/client"
 import { useAppContext } from "@/app/context/AppContext"
-import { timeAgo } from "@/app/utils/timeAgo";
+import { timeAgo } from "@/utils/timeAgo";
  
 interface TweetProps {
   id: string

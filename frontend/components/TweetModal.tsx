@@ -12,8 +12,8 @@ import {
 } from "@heroicons/react/24/outline"
 import { useRef, useEffect, useState } from "react"
 import { useAppContext } from "@/app/context/AppContext"
-import { Comment, TweetData } from "@/app/type/types"
-import { timeAgo } from "@/app/utils/timeAgo"
+import { Comment, TweetData } from "@/type/types"
+import { timeAgo } from "@/utils/timeAgo"
 
 /**
  * Interface pour les propriétés du composant TweetModal

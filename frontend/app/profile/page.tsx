@@ -10,7 +10,7 @@ import Link from 'next/link'
 import TweetsList from "@/components/TweetList"
 import { gql, useQuery } from "@apollo/client"
 import CommentsList from "@/components/CommentsList"
-import { GET_USER_INFO } from '../graphql/queries'
+import { GET_USER_INFO } from '../../graphql/queries'
 
 /**
  * Composant de la page de profil

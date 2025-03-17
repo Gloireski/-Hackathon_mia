@@ -4,11 +4,10 @@
  */
 'use client';
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useAppContext } from '../context/AppContext'
 import { useRouter } from "next/navigation"
-import { LOGIN_MUTATION } from "../graphql/mutations"
-import { LoginResponse, LoginVariables } from "../type/auth"
+import { LOGIN_MUTATION } from '../../graphql/mutations'
 import { useMutation } from "@apollo/client"
 
 /**

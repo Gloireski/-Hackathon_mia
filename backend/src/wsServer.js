@@ -64,6 +64,7 @@ server.listen(5001, () => {
 const sendNotification = (userId, message) => {
   // Récupération du client WebSocket de l'utilisateur
   const client = clients.get(userId);
+  console.log(`message: ${message}`)
   // Envoi du message si le client existe et est connecté
   if (client && client.readyState === WebSocket.OPEN) {
     client.send(JSON.stringify({ type: "notification", message }));

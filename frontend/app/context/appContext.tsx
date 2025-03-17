@@ -5,7 +5,7 @@
 'use client';
 
 import { createContext, useState, useContext, ReactNode, useEffect } from 'react'
-import { User } from '../type/user'
+import { User } from '../../type/user'
 import { jwtDecode } from 'jwt-decode'
 
 

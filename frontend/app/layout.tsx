@@ -10,6 +10,7 @@ import Footer from "./components/footer"
 import { AppProvider } from "@/app/context/AppContext"
 import { ApolloProviderWrapper } from "@/app/context/ApolloProviderWrapper"
 import ReactQueryProvider from "./context/QueryClientProvider"
+import { WebSocketProvider } from "./context/WebSocketProvider"
 
 /**
  * Configuration de la police Geist Sans
@@ -63,13 +64,13 @@ export default function RootLayout({
           {/* Fournisseur React Query pour la gestion d'état */}
           <ReactQueryProvider>
             {/* En-tête commun à toutes les pages */}
-            <Header />
-            
-            {/* Contenu de la page actuelle */}
-            {children}
-            
-            {/* Pied de page commun à toutes les pages */}
-            <Footer />
+            <WebSocketProvider>
+              <Header />
+              {/* Contenu de la page actuelle */}
+              {children}
+              {/* Pied de page commun à toutes les pages */}
+              <Footer />
+            </WebSocketProvider>
           </ReactQueryProvider> 
         </ApolloProviderWrapper>
       </AppProvider>

@@ -67,18 +67,18 @@ export default function Header() {
 
             {/* Menu utilisateur (dropdown) */}
             <div className="relative">
-                {appState.isLoggedIn ? (
+                {appState?.isLoggedIn ? (
                     // Si l'utilisateur est connecté : affichage de l'avatar ou des initiales
                     <button onClick={() => setMenuOpen(!menuOpen)} className="flex items-center space-x-3">
-                        {appState.user?.profile_img ? (
+                        {appState?.user?.profile_img ? (
                             <img
-                                src={appState.user.profile_img}
+                                src={appState?.user.profile_img}
                                 alt="Profile"
                                 className="w-12 h-12 rounded-full border-2 border-gray-300 shadow-md"
                             />
                         ) : (
                             <div className="w-12 h-12 rounded-full border-2 border-gray-300 shadow-md bg-blue-500 flex items-center justify-center text-white font-bold">
-                                {appState.user?.username?.charAt(0).toUpperCase() || 'U'}
+                                {appState?.user?.username?.charAt(0).toUpperCase() || 'U'}
                             </div>
                         )}
                     </button>

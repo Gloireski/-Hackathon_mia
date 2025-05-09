@@ -47,7 +47,7 @@ class tweetController {
         
             // Traitement du média si présent
             if (req.file) {
-              mediaUrl = `/uploads/${req.file.filename}`;
+              mediaUrl = `http://localhost:5000/uploads/${req.file.filename}`;
         
               // Ajout du média à la file d'attente pour traitement asynchrone
               await mediaQueue.add({ filePath: mediaUrl });

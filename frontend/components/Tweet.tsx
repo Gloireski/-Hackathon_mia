@@ -18,6 +18,7 @@ import { FOLLOW_MUTATION, LIKE_TWEET, RE_TWEET  } from "../graphql/mutations"
 import { useMutation } from "@apollo/client"
 import { useAppContext } from "@/app/context/AppContext"
 import { timeAgo } from "@/utils/timeAgo";
+import Image from "next/image";
  
 interface TweetProps {
   id: string
@@ -51,6 +52,8 @@ export default function Tweet({
   const [retweetsCount, setRetweetsCount] = useState(retweets)
   const [following, setFollowing] = useState(isFollowing)
   const { appState } = useAppContext()
+
+  console.log("Tweet props", content, media, isFollowing, author, isLiked, likes)
 
   const [likeTweet] = useMutation(LIKE_TWEET, {
     variables: { tweetId: id },
@@ -137,14 +140,16 @@ export default function Tweet({
       console.error("Erreur lors du retweet:", error);
     }
   };
-
+  console.log(media)
  
   return (
   <div className="p-4 hover:bg-gray-50 transition-colors cursor-pointer">
     <div className="flex gap-3">
-      <img
-        src={author.profile_img}
-        alt={`${author.username}'s profile`}
+      <Image
+        src={author?.profile_img || "/placeholder.png"}
+        alt={`${author?.username}'s profile`}
+        width={48}
+        height={48}
         className="w-12 h-12 rounded-full object-cover"
       />
       <div className="flex-1">
@@ -171,7 +176,9 @@ export default function Tweet({
     {media && (media.endsWith(".mp4") || media.endsWith(".webm")) ? (
       <video src={media} controls className="mt-2 w-full rounded-lg"></video>
     ) : media ? (
-      <img src={media} alt="Tweet media" className="mt-2 w-full rounded-lg object-cover" />
+      <Image 
+        src={media || "/img.png"} alt="Tweet media" width={100} height={100}
+        className="mt-2 w-full rounded-lg object-cover" />
     ) : null}
     <div className="flex gap-8 mt-4 text-gray-500">
       {/* comment icon button */}

@@ -24,6 +24,7 @@ export default function Feed() {
   //   fetchPolicy: "cache-and-network",
   // });
   // Choix de la requête en fonction de l'état de connexion
+  console.log(appState.isLoggedIn);
   const { data, loading, error } = useQuery(appState?.isLoggedIn ? GET_TWEETS : GET_ALL_TWEETS, {
     fetchPolicy: "cache-and-network",
   });

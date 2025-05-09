@@ -49,9 +49,12 @@ const defaultState: AppState = {
 function isTokenExpired(token: string | null) {
     if (!token) return true; // Treat missing token as expired
     try {
-        const decoded: any = jwtDecode(token)
+        interface DecodedToken {
+            exp: number; // Expiration time in seconds since the epoch
+        }
+        const decoded: DecodedToken = jwtDecode<DecodedToken>(token);
         return decoded.exp * 1000 < Date.now()
-    } catch (error) {
+    } catch {
         return true; // Invalid token should be treated as expired
     }
 }
@@ -128,9 +131,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     // Automatically log out when token expires
         useEffect(() => {
             if (appState?.token) {
-                const expiryTime = jwtDecode<any>(appState.token).exp * 1000
-                console.log('Token expires at:', new Date(expiryTime))
-                const timeout = expiryTime - Date.now();
+                interface DecodedToken {
+                    exp: number; // Expiration time in seconds since the epoch
+                }
+                const decodedToken = jwtDecode<DecodedToken>(appState.token);
+                const expiryTime = decodedToken.exp * 1000; // Convert to milliseconds
+                // console.log('Token expires at:', new Date(expiryTime))
+                let timeout = expiryTime - Date.now();
+                timeout = 600000 // 10 minutes for testing
+                console.log('Token will expire in:', timeout/60000, 'minutes')
     
                 if (timeout > 0) {
                     const timer = setTimeout(logout, timeout)

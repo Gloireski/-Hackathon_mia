@@ -124,7 +124,16 @@ export const GET_USER_INFO = gql`
         tweetId
         }
       likedTweets {
-        id
+          id
+          content
+          media
+          createdAt
+          
+          author {
+            _id
+            username
+            profile_img
+          }
       }
       bookmarks {
         id

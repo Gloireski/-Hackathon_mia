@@ -1,18 +1,14 @@
-FROM node:18
+# frontend/Dockerfile
+FROM node:18-alpine AS builder
 
 WORKDIR /app
-
-# Copier les fichiers de dépendances
 COPY package*.json ./
-
-# Installer les dépendances
 RUN npm install
-
-# Copier le reste du code
 COPY . .
+RUN npm run build
 
-# Exposer le port
-EXPOSE 3000
-
-# Commande pour démarrer l'application
-CMD ["npm", "run", "dev"]
+# Étape 2 - Serveur nginx
+FROM nginx:alpine
+COPY --from=builder /app/out /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

@@ -4,11 +4,11 @@
  */
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-import { useAppContext } from '../context/appContext';
-import { gql, useQuery } from "@apollo/client";
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
+import { ArrowLeftIcon } from '@heroicons/react/24/outline'
+import { useAppContext } from '@/app/context/AppContext'
+import { gql, useQuery } from "@apollo/client"
 
 /**
  * Requête GraphQL pour récupérer les informations de l'utilisateur connecté
@@ -17,7 +17,7 @@ const GET_USER_INFO = gql`
   query User {
     userTimeline {
       user {
-        id
+        _id
         username
         email
         profile_img
@@ -53,10 +53,16 @@ export default function EditProfilePage() {
      */
     const { data, loading: queryLoading, refetch } = useQuery(GET_USER_INFO, {
         fetchPolicy: "cache-and-network",
+        onCompleted: (data) => {
+            console.log("✅ Query completed:", data);
+        },
+        onError: (err) => {
+            console.error("❌ GraphQL error:", err)
+        }
     });
-
+    
     // Extraction des données utilisateur du résultat de la requête
-    const userData = data?.userTimeline?.user || {};
+    const userData = useMemo(() => data?.userTimeline?.user || {}, [data]);
 
     /**
      * Effet pour initialiser le formulaire avec les données utilisateur

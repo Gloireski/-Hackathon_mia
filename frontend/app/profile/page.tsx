@@ -4,13 +4,15 @@
  */
 'use client';
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PencilIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import TweetsList from "@/components/TweetList"
-import { gql, useQuery } from "@apollo/client"
+import { useQuery } from "@apollo/client"
 import CommentsList from "@/components/CommentsList"
 import { GET_USER_INFO } from '../../graphql/queries'
+import { useAppContext } from "@/app/context/AppContext"
+import Image from 'next/image'
 
 /**
  * Composant de la page de profil
@@ -21,7 +23,8 @@ import { GET_USER_INFO } from '../../graphql/queries'
  */
 export default function ProfilePage() {
     // État pour gérer l'onglet actif
-    const [activeTab, setActiveTab] = useState('posts');
+    const [activeTab, setActiveTab] = useState('posts')
+    const { appState } = useAppContext()
 
     /**
      * Requête GraphQL pour récupérer les données de l'utilisateur
@@ -29,11 +32,23 @@ export default function ProfilePage() {
      */
     const { data, loading, error } = useQuery(GET_USER_INFO, {
         fetchPolicy: "cache-and-network", // Évite d'afficher des données obsolètes
+
+        onCompleted: (data) => {
+            console.log("✅ Query completed:", data);
+          },
+
+        onError: (err) => {
+        console.error("❌ GraphQL error:", err);
+        }
     });
 
     // Log des données pour le débogage
-    if (data) { console.log(data) }
-    if (error) { console.log(error) }
+    useEffect(() => {
+    if (error) {
+        console.log("GraphQL Error(s):", error.graphQLErrors);
+        console.log("Network Error:", error.networkError);
+    }
+    }, [error]);
 
     // Préparation des données pour l'affichage
     const userData = data?.userTimeline?.user || {};
@@ -41,6 +56,7 @@ export default function ProfilePage() {
     const followersCount = userData?.followers?.length || 0;
     const followingCount = userData?.followings?.length || 0;
 
+    // console.log("userData", appState?.user)
     return (
         <div className="min-h-screen bg-gray-100 text-gray-900 pt-22">
             <div className="max-w-4xl mx-auto p-4">
@@ -56,15 +72,22 @@ export default function ProfilePage() {
                     {/* Informations du profil */}
                     <div className="flex items-center space-x-6">
                         {/* Photo de profil */}
-                        <img
-                            src={userData.profile_img || "/placeholder-profile.jpg"}
+                        <Image
+                            src={appState?.user?.profile_img || "/placeholder-profile.jpg"}
                             alt="Profile"
+                            width={80}
+                            height={80}
                             className="w-20 h-20 rounded-full object-cover"
                         />
+                        {/* <img
+                            src={appState?.user?.profile_img || "/placeholder-profile.jpg"}
+                            alt="Profile"
+                            className="w-20 h-20 rounded-full object-cover"
+                        /> */}
                         <div>
                             {/* Nom d'utilisateur et bio */}
-                            <h1 className="text-xl font-bold">{userData.username || "Username"}</h1>
-                            <p className="text-gray-600">{userData.bio || "You don't have a bio yet."}</p>
+                            <h1 className="text-xl font-bold">{appState?.user?.username || "Username"}</h1>
+                            <p className="text-gray-600">{appState?.user?.bio || "You don't have a bio yet."}</p>
                             
                             {/* Statistiques (posts, followers, following) */}
                             <div className="mt-2 flex space-x-4 text-sm text-gray-500">
@@ -75,7 +98,7 @@ export default function ProfilePage() {
                         </div>
                     </div>
                 </div>
-
+                {loading && (<div className="flex justify-center items-center h-screen"><p className="text-lg">Loading...</p></div>)}
                 {/* Onglets de navigation */}
                 <div className="mt-4 flex space-x-4 border-b">
                     {['posts', 'comments', 'liked'].map(tab => (

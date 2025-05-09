@@ -71,7 +71,7 @@ const typeDefs = gql`
   # Type pour les utilisateurs
   type User {
     _id: ID!
-    username: String!
+    username: String
     handle: String!
     email: String!
     token: String

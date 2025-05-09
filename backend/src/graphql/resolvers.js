@@ -60,10 +60,10 @@ const resolvers = {
     
       try {
         const authenticatedUser = await User.findById(user.id).populate("bookmarks").exec();
-        if (!authenticatedUser) throw new Error("User not found");
+        if (!authenticatedUser) throw new Error("User not found")
     
         const userData = await User.findById(user.id);
-        if (!userData) throw new Error("Utilisateur introuvable");
+        if (!userData) throw new Error("Utilisateur introuvable")
     
         const tweets = await Tweet.find({ author: user.id })
           .populate("author", "username profile_img")

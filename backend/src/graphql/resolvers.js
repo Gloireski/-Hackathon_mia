@@ -95,6 +95,7 @@ const resolvers = {
               id: tweet.author._id.toString()
           } : null, // Gérer le cas où l'auteur est null
           comments: tweet.comments.map((comment) => comment.id),
+          // followingUsers: tweet.followingUsers.map((user) => user.id),
         });
     
         return {
@@ -109,6 +110,7 @@ const resolvers = {
           })),
           likedTweets: likedTweets.map(formatTimelineResponse),
           bookmarks: authenticatedUser.bookmarks.map(formatTimelineResponse),
+          followingUsers: userData.followings.map((user) => ({id: user._id.toString()})),
         };
       } catch (error) {
         console.error("Error fetching user timeline:", error);
@@ -128,7 +130,7 @@ const resolvers = {
     
       const user = await User.findById(currentUser.id).select("followings bookmarks");
       if (!user) throw new Error("Utilisateur introuvable");
-    
+
       // Récupérer les tweets des abonnements
       const followedTweets = await Tweet.find({ author: { $in: user.followings } })
         .populate("author", "username handle profile_img")
@@ -207,7 +209,10 @@ const resolvers = {
       })).sort((a, b) => b.likes + b.retweets - (a.likes + a.retweets));
     
       await redis.setex(cacheKey, 20, JSON.stringify(finalTweets)); // Cache pour 60 secondes
-      return finalTweets;
+      return {
+        tweets: finalTweets,
+        followingUsers: user.followings.map((user) => ( user._id?.toString?.() || user.id?.toString?.() )),
+      };
     },
     getUserTweets: async(_, { userId }) => {
       try {

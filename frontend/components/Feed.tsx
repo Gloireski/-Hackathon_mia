@@ -1,21 +1,22 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { useQuery, gql } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import { Image, FileImage, Smile, BarChart, MapPin, Camera } from "lucide-react";
 import TweetsList from "./TweetList";
 import Tabs from "./Tabs";
 import { useAppContext } from "@/app/context/AppContext";
 import { GET_TWEETS, GET_ALL_TWEETS } from "@/graphql/queries";
+// import { serverHooks } from "next/dist/server/app-render/entry-base";
 
 export default function Feed() {
-  const [activeTab, setActiveTab] = useState("forYou");
-  const [activeTabTyped, setActiveTabTyped] = useState("forYou");
+  // const [activeTab, setActiveTab] = useState("forYou");
+  const [activeTabTyped, setActiveTabTyped] = useState<"forYou" | "following">("forYou");
   const [newTweet, setNewTweet] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [filePreview, setFilePreview] = useState(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { appState } = useAppContext();
 
   const [mediaTypes] = useState("image/*,video/*");
@@ -24,13 +25,30 @@ export default function Feed() {
   //   fetchPolicy: "cache-and-network",
   // });
   // Choix de la requête en fonction de l'état de connexion
-  console.log(appState.isLoggedIn);
+  // console.log(appState?.isLoggedIn);
   const { data, loading, error } = useQuery(appState?.isLoggedIn ? GET_TWEETS : GET_ALL_TWEETS, {
     fetchPolicy: "cache-and-network",
+    onCompleted: (data) => {
+      console.log("✅ Query completed:", data);
+    },
   });
 
-  const handleFileSelect = useCallback((e) => {
-    const file = e.target.files[0];
+//   const followingUsersMap = useMemo(() => {
+//   const map: Record<string, boolean> = {};
+//   const userIds = data?.getTimeline?.followingUsers;
+//   if (Array.isArray(userIds)) {
+//     userIds.forEach((userId) => {
+//       if (typeof userId === "string") {
+//         map[userId] = true;
+//       }
+//     });
+//   }
+
+//   return map;
+// }, [data]);
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
     setSelectedFile(file);
     setFilePreview(URL.createObjectURL(file));
@@ -67,7 +85,7 @@ export default function Feed() {
     } finally {
       setIsLoading(false);
     }
-  }, [newTweet, selectedFile, removeSelectedFile]);
+  }, [newTweet, selectedFile, removeSelectedFile, appState]);
 
   return (
       <div className="flex justify-center w-full">
@@ -117,9 +135,17 @@ export default function Feed() {
             </div>
           </div>
           {appState?.isLoggedIn ? (
-          <TweetsList tweets={data?.getTimeline || []} loading={loading} />
+          <TweetsList 
+            tweets={data?.getTimeline?.tweets || []}
+            loading={loading}
+            followingUsers={data?.getTimeline?.followingUsers}
+          />
         ) : (
-          <TweetsList tweets={data?.publicTimeline || []} loading={loading} />
+          <TweetsList 
+            tweets={data?.publicTimeline || []}
+            loading={loading}
+            followingUsers={[]}
+          />
         )}
         </div>
       </div>

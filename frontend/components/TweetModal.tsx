@@ -12,7 +12,7 @@ import {
 } from "@heroicons/react/24/outline"
 import { useRef, useEffect, useState } from "react"
 import { useAppContext } from "@/app/context/AppContext"
-import { Comment, TweetData } from "@/type/types"
+import { Comment, TweetData } from "@/types/types"
 import { timeAgo } from "@/utils/timeAgo"
 
 /**

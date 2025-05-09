@@ -5,19 +5,20 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useLazyQuery, useQuery } from "@apollo/client"
+import { useLazyQuery } from "@apollo/client"
 import Tweet from "./Tweet"
 import TweetModal from "./TweetModal"
 import { GET_TWEET } from "../graphql/queries"
-
-import { TweetData, Comment } from "../type/types"
+import { TweetModel } from "@/types/TweetModel"
+import { CommentModel } from "../types/types"
 /**
  * Interface pour les propriétés du composant TweetsList
  * @interface TweetsListProps
  */
 interface TweetsListProps {
-    tweets: TweetData[];
+    tweets: TweetModel[];
     loading: boolean;
+    followingUsers: string[]
 }
 
 /**
@@ -25,12 +26,21 @@ interface TweetsListProps {
  * @param {TweetsListProps} props - Propriétés du composant
  * @returns {JSX.Element} - Composant rendu
  */
-export default function TweetsList({ tweets, loading }: TweetsListProps) {
+export default function TweetsList({ tweets, loading, followingUsers }: TweetsListProps) {
     // État pour le tweet sélectionné (affiché dans le modal)
-    const [selectedTweet, setSelectedTweet] = useState<TweetData | null>(null);
+    const [selectedTweet, setSelectedTweet] = useState<TweetModel | null>(null);
     // État pour les commentaires du tweet sélectionné
-    const [comments, setComments] = useState<Comment[]>([]);
+    const [comments, setComments] = useState<CommentModel[]>([]);
+    // État pour la liste des utilisateurs suivis (sous forme de map pour un accès rapide)
+    const [followingMap, setFollowingMap] = useState<Record<string, boolean>>(() => {
+        const map: Record<string, boolean> = {};
+        followingUsers.forEach(userId => {
+            map[userId] = true;
+        });
+        return map;
+    });
 
+    console.log("Following map:", followingMap);
     /**
      * Requête GraphQL pour récupérer les détails d'un tweet
      * fetchPolicy "network-only" pour toujours récupérer les données à jour du serveur
@@ -38,19 +48,12 @@ export default function TweetsList({ tweets, loading }: TweetsListProps) {
     const [fetchTweet, { data, loading: tweetLoading, error }] = useLazyQuery(GET_TWEET, {
         fetchPolicy: "network-only",
     });
-    /**
-     * Utilisation de useQuery pour récupérer les détails d'un tweet
-     */
-    // const { data, loading: tweetLoading, error } = useQuery(GET_TWEET, {
-    //     variables: { id: selectedTweet?.id },
-    //     skip: !selectedTweet,
-    //     fetchPolicy: "network-only",
-    // });
+  
     /**
      * Ouvre le modal d'un tweet et charge ses commentaires
      * @param {TweetData} tweet - Tweet à afficher dans le modal
      */
-    const openTweet = (tweet: TweetData) => {
+    const openTweet = (tweet: TweetModel) => {
         console.log("Opening tweet:", tweet)
         setSelectedTweet(tweet)
         // setComments([]) // Réinitialise les commentaires avant d'en charger de nouveaux
@@ -80,6 +83,14 @@ export default function TweetsList({ tweets, loading }: TweetsListProps) {
                     <div key={tweet.id} onClick={() => openTweet(tweet)}>
                         <Tweet 
                             {...tweet} 
+                            isFollowing={!!followingMap[tweet.author._id]}
+                            onFollowToggle={(userId: string) => {
+                                console.log("Toggling follow for user:", userId);
+                                setFollowingMap(prev => ({
+                                ...prev,
+                                [userId]: !prev[userId]
+                                }));
+                            }}
                         />
                     </div>
                 ))

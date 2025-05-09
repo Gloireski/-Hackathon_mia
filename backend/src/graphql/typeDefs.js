@@ -42,7 +42,11 @@ const typeDefs = gql`
     hashtags: [String]
     createdAt: String!
   }
-  
+  type TimelineData {
+    tweets: [TimelineResponse!]!
+    followingUsers: [ID]
+  }
+
   # Type pour les tweets dans le timeline
   type TimelineResponse {
     id: ID
@@ -114,7 +118,8 @@ const typeDefs = gql`
     userTimeline: userTimeline!
     
     # Récupère le fil d'actualité personnalisé
-    getTimeline: [TimelineResponse!]!
+    # getTimeline: [TimelineResponse!]!
+    getTimeline: TimelineData
 
     #fil public
     publicTimeline: [TimelineResponse!]!

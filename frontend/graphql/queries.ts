@@ -46,22 +46,25 @@ export const GET_TWEET = gql`
 export const GET_TWEETS = gql`
   query GetTweets {
     getTimeline {
-      id
-      content
-      media
-      likes
-      retweets
-      isRetweet
-      isRetweeted
-      isLiked
-      isFollowing
-      createdAt
-      comments
-      author {
-        profile_img
-        _id
-        username
+      tweets {
+        id
+        content
+        media
+        likes
+        retweets
+        isRetweet
+        isRetweeted
+        isLiked
+        isFollowing
+        createdAt
+        comments
+        author {
+          profile_img
+          _id
+          username
+        }
       }
+      followingUsers
     }
   }
 `

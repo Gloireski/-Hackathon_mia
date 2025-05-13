@@ -7,8 +7,10 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
-import { useAppContext } from '@/app/context/AppContext'
 import { gql, useQuery } from "@apollo/client"
+import { useAuth } from '@/app/context/AuthContext'
+import { useUserContext } from '@/app/context/UserContext'
+import Image from 'next/image';
 
 /**
  * Requête GraphQL pour récupérer les informations de l'utilisateur connecté
@@ -34,8 +36,9 @@ const GET_USER_INFO = gql`
 export default function EditProfilePage() {
     // Hook de navigation
     const router = useRouter();
-    // Contexte global de l'application
-    const { appState, setUser } = useAppContext();
+    // Contexte global de l'application pour accéder aux données utilisateur
+    const { setUser } = useUserContext();
+    const { accessToken } = useAuth();
     // Référence pour l'input de fichier caché
     const fileInputRef = useRef<HTMLInputElement>(null);
     
@@ -122,7 +125,7 @@ export default function EditProfilePage() {
                 method: 'PUT',
                 body: formData,
                 headers: {
-                    Authorization: `Bearer ${appState.token}`
+                    Authorization: `Bearer ${accessToken}`
                 }
             });
 
@@ -145,7 +148,7 @@ export default function EditProfilePage() {
 
             // Mise à jour des données utilisateur dans le contexte global
             if (setUser && data.user) {
-                setUser(data.user, appState?.token);
+                setUser(data.user);
             }
 
             // Affichage du message de succès
@@ -159,9 +162,12 @@ export default function EditProfilePage() {
                 router.push('/profile');
             }, 1500);
 
-        } catch (err: any) {
-            console.error('Error updating profile:', err);
-            setError(err.message || 'An error occurred while updating your profile');
+        } catch (err) {
+            if (err instanceof Error) {
+                console.error('Error updating profile:', err);
+                setError(err.message || 'An error occurred while updating your profile');
+            }
+            
         } finally {
             setIsLoading(false);
         }
@@ -207,11 +213,15 @@ export default function EditProfilePage() {
                     {/* Section de téléchargement d'image de profil */}
                     <div className="flex flex-col items-center">
                         <label htmlFor="profilePic" className="cursor-pointer">
-                            <img
-                                src={profilePicPreview}
+                            {/* Affichage de l'image de profil ou d'un espace réservé */}
+                           
+                            <Image
+                                src={profilePicPreview || '/placeholder-profile.jpg'}
                                 alt="Profile"
+                                width={24}
+                                height={24}
                                 className="w-24 h-24 rounded-full object-cover border"
-                            />
+                            /> 
                         </label>
                         <input
                             type="file"

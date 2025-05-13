@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { useUserContext } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
 import Image from 'next/image';
+import { setAccessToken } from '../lib/tokenUtils';
 
 /**
  * Composant Header réutilisable
@@ -23,7 +24,7 @@ export default function Header() {
     // const { appState, setUser } = useAppContext();
     const { isLoggedIn } = useAuth();
     const { user, setUser } = useUserContext();
-    const { accessToken } = useAuth();
+    const { accessToken, setIsLoggedIn } = useAuth();
     // Hook de navigation
     const router = useRouter();
 
@@ -33,7 +34,9 @@ export default function Header() {
      */
     async function logOut() {
         // Effacement des données utilisateur du contexte
-        setUser(null)
+        setUser(null);
+        setIsLoggedIn(false);
+        setAccessToken(null)
 
         // Appel de l'API de déconnexion
         try {
@@ -45,8 +48,9 @@ export default function Header() {
                 },
             });
             const data = await res.json();
+
             if (!res.ok) {
-                throw new Error(data.message || 'Registration failed');
+                throw new Error(data.message || 'Logout failed');
             }
         } catch (err) {
             console.log(err)

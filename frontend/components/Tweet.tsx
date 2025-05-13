@@ -16,10 +16,12 @@ import {
 
 import { FOLLOW_MUTATION, LIKE_TWEET, RE_TWEET  } from "../graphql/mutations"
 import { useMutation } from "@apollo/client"
-import { useAppContext } from "@/app/context/AppContext"
+// import { useAppContext } from "@/app/context/AppContext"
 import { timeAgo } from "@/utils/timeAgo";
 import Image from "next/image";
 import { TweetProps } from "@/types/TweetProps";
+import { useUserContext } from "@/app/context/UserContext";
+import { useAuth } from "@/app/context/AuthContext";
  
 export default function Tweet({
    id, content, createdAt, isFollowing, author, isLiked, likes,
@@ -29,7 +31,9 @@ export default function Tweet({
   const [retweeted, setRetweeted] = useState(isRetweeted)
   const [likesCount, setLikesCount] = useState(likes)
   const [retweetsCount, setRetweetsCount] = useState(retweets)
-  const { appState } = useAppContext()
+  // const { appState } = useAppContext()
+  const { user } = useUserContext()
+  const { isLoggedIn } = useAuth()
 
   console.log("Tweet props", media, author)
 
@@ -80,8 +84,8 @@ export default function Tweet({
 
   const handleFollow = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!appState?.isLoggedIn) return;
-  
+    if (!isLoggedIn) return;
+
     try {
         const { data } = await followUser({
             variables: { userId: author._id },
@@ -100,7 +104,7 @@ export default function Tweet({
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!appState?.isLoggedIn) return;
+    if (!isLoggedIn) return;
 
     try {
       const { data } = await likeTweet();
@@ -115,7 +119,7 @@ export default function Tweet({
  
   const handleRetweet = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!appState?.isLoggedIn) return;
+    if (!isLoggedIn) return;
 
     try {
       const { data } = await reTweet();
@@ -156,7 +160,7 @@ export default function Tweet({
               <span className="text-gray-500">· {timeAgo(createdAt, "fr")}</span>
             </div>
             {/* follow button */}
-            {appState?.isLoggedIn && appState?.user?._id !== author._id && (
+            {isLoggedIn && user?._id !== author._id && (
             <button
               onClick={handleFollow}
               disabled={loading}
@@ -187,7 +191,7 @@ export default function Tweet({
             <button 
                 className={`flex items-center gap-2 ${retweeted ? "text-blue-500" : "hover:text-blue-500"}`}
                 onClick={(e) => handleRetweet(e)}
-                disabled={(appState?.user?._id === author._id)}
+                disabled={(user?._id === author._id)}
               >
               {retweeted ? <ArrowPathSolid className="w-5 h-5" /> : <ArrowPathIcon className="w-5 h-5" />}
               <span>{retweetsCount}</span>

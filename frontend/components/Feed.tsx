@@ -5,7 +5,6 @@ import { useQuery } from "@apollo/client";
 import { Image, FileImage, Smile, BarChart, MapPin, Camera } from "lucide-react";
 import TweetsList from "./TweetList";
 import Tabs from "./Tabs";
-import { useAppContext } from "@/app/context/AppContext";
 import { GET_TWEETS, GET_ALL_TWEETS } from "@/graphql/queries";
 import { useAuth } from "@/app/context/AuthContext";
 
@@ -17,7 +16,6 @@ export default function Feed() {
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { appState } = useAppContext();
   const { isLoggedIn, accessToken } = useAuth();
 
   const [mediaTypes] = useState("image/*,video/*");

@@ -11,6 +11,7 @@ import TweetModal from "./TweetModal"
 import { GET_TWEET } from "../graphql/queries"
 import { TweetModel } from "@/types/TweetModel"
 import { CommentModel } from "../types/types"
+import { useFollowingMap } from "@/hooks/useFollowingMap"
 /**
  * Interface pour les propriétés du composant TweetsList
  * @interface TweetsListProps
@@ -32,15 +33,9 @@ export default function TweetsList({ tweets, loading, followingUsers }: TweetsLi
     // État pour les commentaires du tweet sélectionné
     const [comments, setComments] = useState<CommentModel[]>([]);
     // État pour la liste des utilisateurs suivis (sous forme de map pour un accès rapide)
-    const [followingMap, setFollowingMap] = useState<Record<string, boolean>>(() => {
-        const map: Record<string, boolean> = {};
-        followingUsers.forEach(userId => {
-            map[userId] = true;
-        });
-        return map;
-    });
+    const { followingMap, toggleFollow} = useFollowingMap(followingUsers);
 
-    console.log("Following map:", followingMap);
+    // console.log("Following users:", followingUsers) // Debug;
     /**
      * Requête GraphQL pour récupérer les détails d'un tweet
      * fetchPolicy "network-only" pour toujours récupérer les données à jour du serveur
@@ -48,7 +43,6 @@ export default function TweetsList({ tweets, loading, followingUsers }: TweetsLi
     const [fetchTweet, { data, loading: tweetLoading, error }] = useLazyQuery(GET_TWEET, {
         fetchPolicy: "network-only",
     });
-  
     /**
      * Ouvre le modal d'un tweet et charge ses commentaires
      * @param {TweetData} tweet - Tweet à afficher dans le modal
@@ -84,13 +78,7 @@ export default function TweetsList({ tweets, loading, followingUsers }: TweetsLi
                         <Tweet 
                             {...tweet} 
                             isFollowing={!!followingMap[tweet.author._id]}
-                            onFollowToggle={(userId: string) => {
-                                console.log("Toggling follow for user:", userId);
-                                setFollowingMap(prev => ({
-                                ...prev,
-                                [userId]: !prev[userId]
-                                }));
-                            }}
+                            onFollowToggle={toggleFollow}
                         />
                     </div>
                 ))

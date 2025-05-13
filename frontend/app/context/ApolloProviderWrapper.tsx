@@ -6,8 +6,9 @@
 
 import { ApolloProvider } from "@apollo/client";
 import { createApolloClient } from "@/apollo-client";
-import { useAppContext } from "@/app/context/AppContext";
+// import { useAppContext } from "@/app/context/AppContext";
 import { ReactNode } from 'react'
+import { useAuth } from "@/app/context/AuthContext";
 
 /**
  * Composant enveloppant l'application avec le contexte Apollo Client
@@ -19,10 +20,11 @@ import { ReactNode } from 'react'
  */
 export const ApolloProviderWrapper = ({ children }: { children: ReactNode }) => {
     // Récupération du contexte global de l'application
-    const { appState } = useAppContext();
+    // const { appState } = useAppContext();
+    const { accessToken } = useAuth();
     
     // Création du client Apollo avec le token d'authentification
-    const client = createApolloClient(appState?.token);
+    const client = createApolloClient(accessToken);
 
     // Fourniture du client Apollo aux composants enfants
     return <ApolloProvider client={client}>{children}</ApolloProvider>;

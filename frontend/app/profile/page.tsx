@@ -11,7 +11,9 @@ import TweetsList from "@/components/TweetList"
 import { useQuery } from "@apollo/client"
 import CommentsList from "@/components/CommentsList"
 import { GET_USER_INFO } from '../../graphql/queries'
-import { useAppContext } from "@/app/context/AppContext"
+// import { useAppContext } from "@/app/context/AppContext"
+import { useUserContext } from '../context/UserContext'
+// import { useAuth } from '../context/AuthContext'
 import Image from 'next/image'
 
 /**
@@ -24,7 +26,9 @@ import Image from 'next/image'
 export default function ProfilePage() {
     // État pour gérer l'onglet actif
     const [activeTab, setActiveTab] = useState('posts')
-    const { appState } = useAppContext()
+    // const { appState } = useAppContext()
+    const { user } = useUserContext();
+    // const { isLoggedIn } = useAuth();
 
     /**
      * Requête GraphQL pour récupérer les données de l'utilisateur
@@ -72,13 +76,21 @@ export default function ProfilePage() {
                     {/* Informations du profil */}
                     <div className="flex items-center space-x-6">
                         {/* Photo de profil */}
+                        {user?.profile_img?
                         <Image
-                            src={appState?.user?.profile_img || "/placeholder-profile.jpg"}
+                            src={user?.profile_img || "/placeholder-profile.jpg"}
                             alt="Profile"
                             width={80}
                             height={80}
                             className="w-20 h-20 rounded-full object-cover"
                         />
+                        :
+                        (
+                            <div className="w-12 h-12 rounded-full border-2 border-gray-300 shadow-md 
+                            bg-blue-500 flex items-center justify-center text-white font-bold">
+                                {user?.username?.charAt(0).toUpperCase() || 'U'}
+                            </div>
+                        )}
                         {/* <img
                             src={appState?.user?.profile_img || "/placeholder-profile.jpg"}
                             alt="Profile"
@@ -86,9 +98,9 @@ export default function ProfilePage() {
                         /> */}
                         <div>
                             {/* Nom d'utilisateur et bio */}
-                            <h1 className="text-xl font-bold">{appState?.user?.username || "Username"}</h1>
-                            <p className="text-gray-600">{appState?.user?.bio || "You don't have a bio yet."}</p>
-                            
+                            <h1 className="text-xl font-bold">{user?.username || "Username"}</h1>
+                            <p className="text-gray-600">{user?.bio || "You don't have a bio yet."}</p>
+
                             {/* Statistiques (posts, followers, following) */}
                             <div className="mt-2 flex space-x-4 text-sm text-gray-500">
                                 <span><strong>{tweetsCount}</strong> Posts</span>
@@ -128,6 +140,7 @@ export default function ProfilePage() {
                             <TweetsList
                                 tweets={data?.userTimeline?.tweets || []}
                                 loading={loading}
+                                followingUsers={userData?.followings || []}
                             />
                         </div>
                     )}
@@ -138,6 +151,7 @@ export default function ProfilePage() {
                             <TweetsList
                                 tweets={data?.userTimeline?.likedTweets || []}
                                 loading={loading}
+                                followingUsers={userData?.followings || []}
                             />
                         </div>
                     )}

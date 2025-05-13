@@ -129,17 +129,25 @@ const login = async (req, res) => {
             return res.status(401).json({ message: 'Email ou mot de passe incorrect' })
         }
 
-        // Vérification que l'email a été vérifié
-        if (!user.isEmailVerified) {
-            return res.status(403).json({ 
-                message: 'Veuillez vérifier votre adresse email avant de vous connecter',
-                verificationRequired: true,
-                userId: user._id
-            });
-        }
+        // // Vérification que l'email a été vérifié
+        // if (!user.isEmailVerified) {
+        //     return res.status(403).json({ 
+        //         message: 'Veuillez vérifier votre adresse email avant de vous connecter',
+        //         verificationRequired: true,
+        //         userId: user._id
+        //     });
+        // }
         
         // Génération des tokens d'accès et de rafraîchissement
         const { accessToken, refreshToken } = await tokenService.generateTokens(user)
+
+         res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            path: 'api/auth/refresh-token',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
         
         // Réponse avec les informations utilisateur et les tokens
         res.status(200).json({
@@ -153,7 +161,7 @@ const login = async (req, res) => {
         },
         tokens: {
             accessToken,
-            refreshToken
+            // refreshToken
         }
         });
     } catch (error) {
@@ -234,13 +242,16 @@ const getMe = async (req, res) => {
  */
 const refreshToken = async (req, res) => {
     try {
+        console.log('called')
         // Récupération du token de rafraîchissement
-        const { refreshToken } = req.body
-        
+        const { refreshToken } = req.cookies
+
+        console.log('cookies ref', refreshToken)
         if (!refreshToken) {
             return res.status(400).json({ message: 'Token de rafraîchissement manquant' })
         }
-        
+        // console.log('refreshToken', refreshToken)
+
         // Génération d'un nouveau token d'accès
         const newAccessToken = await tokenService.refreshAccessToken(refreshToken)
         

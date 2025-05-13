@@ -4,6 +4,7 @@
     username: string,
     email: string,
     password: string,
-    bio: string
-    profile_img: string
+    bio: string,
+    profile_img: string,
+    handle: string
 }

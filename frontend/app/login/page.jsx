@@ -8,7 +8,11 @@ import { useState } from 'react'
 import { useAppContext } from '../context/AppContext'
 import { useRouter } from "next/navigation"
 import { LOGIN_MUTATION } from '../../graphql/mutations'
-import { useMutation } from "@apollo/client"
+// import { useMutation } from "@apollo/client"
+import { useMutation } from "@tanstack/react-query";
+import axios from '@/app/lib/axios';
+import { useAuth } from '../context/AuthContext';
+import { useUserContext } from '../context/UserContext'
 
 /**
  * Composant de la page de connexion
@@ -20,14 +24,39 @@ export default function LoginPage() {
     // États pour gérer le formulaire
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [errorMessage, setErrorMessage] = useState('')
-    
+    const [errorMessage, setErrorMessage] = useState('');
+    const { setAccessToken, setIsLoggedIn } = useAuth()
+    const { setUser } = useUserContext()
+
+    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+    // console.log("Server URL:", serverUrl);
+
+    const mutation = useMutation({
+        mutationFn: async ({ email, password }) => {
+            const res = await axios.post(`${serverUrl}/api/auth/login`, {
+                email,
+                password
+            }, {withCredentials: true});
+
+            const data = await res.data;
+
+            if (res.status !== 200) {
+                throw new Error(data.message || 'Login failed');
+            }
+            return data;
+        },
+
+        onMutate: (variables) => {
+            console.log("Login attempt:", variables);
+        },
+    })
+        
+
     // Hook Apollo pour la mutation de connexion
-    const [login, { data, loading, error }] = useMutation(LOGIN_MUTATION)
+    // const [login, { data, loading, error }] = useMutation(LOGIN_MUTATION)
 
     // Hooks pour la navigation et le contexte global
     const router = useRouter()
-    const { appState, setUser, isLoading, setIsLoading } = useAppContext()
 
     /**
      * Gère la soumission du formulaire de connexion
@@ -41,22 +70,25 @@ export default function LoginPage() {
             setErrorMessage('Please fill in both fields');
             return;
         }
-        setIsLoading(true);
+        // setIsLoading(true);
         setErrorMessage('');
 
         try {
             
             // Utilisation de la mutation GraphQL pour la connexion
-            const { data, loading } = await login({ variables: { email, password } })
-            console.log(loading)
-            
+            // const { data, loading } = await login({ variables: { email, password } })
+            mutation.mutate({ email, password }, {
+                onSuccess: (data) => {
+                    console.log("Login successful:", data);
+                    setAccessToken(data.tokens.accessToken);
+                    setIsLoggedIn(true);
+                    setUser(data.user);
+                    router.replace('/'); // Redirection vers la page d'accueil
+                },
+            });
+
             // Si la connexion réussit, mise à jour du contexte et redirection
-            if (data) {
-                router.replace('/')
-                // Destructuration de l'objet pour séparer le token des autres données utilisateur
-                const { token, ...user } = data.login
-                setUser(user, token)
-            }
+            
         } catch (error) {
             console.error("Login Failed:", error.message);
             setErrorMessage('An error occurred during login. Please try again.');
@@ -69,9 +101,9 @@ export default function LoginPage() {
                 <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">Login</h1>
 
                 {/* Affichage des erreurs */}
-                {error && (
+                {mutation.error && (
                     <div className="text-red-500 text-sm text-center mb-4">
-                        {error.message}
+                        {mutation.error.message}
                     </div>
                 )}
 
@@ -107,9 +139,9 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         className="w-full py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition duration-200"
-                        disabled={loading}
+                        disabled={mutation.isPending}
                     >
-                        {loading ? 'Logging in...' : 'Login'}
+                        {mutation.isPending ? 'Logging in...' : 'Login'}
                     </button>
                 </form>
 

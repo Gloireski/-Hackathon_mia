@@ -62,6 +62,7 @@ export const GET_TWEETS = gql`
           profile_img
           _id
           username
+          handle
         }
       }
       followingUsers
@@ -79,13 +80,13 @@ export const GET_ALL_TWEETS = gql`
       isRetweet
       isRetweeted
       isLiked
-      isFollowing
       createdAt
       comments
       author {
         profile_img
         _id
         username
+        handle
       }
     }
   }
@@ -100,20 +101,30 @@ export const GET_USER_INFO = gql`
       user {
         _id
         username
+        handle
         email
         profile_img
         bio
+        followers
+        followings
       }
       tweets {
         id
         content
         media
         createdAt
-        
+        likes
+        retweets
+        isRetweet
+        isRetweeted
+        isLiked
+        createdAt
+        comments
         author {
+          profile_img
           _id
           username
-          profile_img
+          handle
         }
       }
       comments {
@@ -121,22 +132,27 @@ export const GET_USER_INFO = gql`
         content
         author {
           _id
-          username
-          profile_img
         }
         tweetId
         }
       likedTweets {
-          id
-          content
-          media
-          createdAt
-          
-          author {
-            _id
-            username
-            profile_img
-          }
+        id
+        content
+        media
+        createdAt
+        likes
+        retweets
+        isRetweet
+        isRetweeted
+        isLiked
+        createdAt
+        comments
+        author {
+          profile_img
+          _id
+          username
+          handle
+        }
       }
       bookmarks {
         id
@@ -144,4 +160,17 @@ export const GET_USER_INFO = gql`
       }
     }
   }
+`
+
+export const GET_USER = gql`
+  query GetCurrentUser {
+  getCurrentUser {
+    _id
+    username
+    handle
+    email
+    bio
+    profile_img
+  }
+}
 `

@@ -31,7 +31,7 @@ export default function Tweet({
   const [retweetsCount, setRetweetsCount] = useState(retweets)
   const { appState } = useAppContext()
 
-  // console.log("Tweet props", content, media, isFollowing, author, isLiked, likes)
+  console.log("Tweet props", media, author)
 
   const [likeTweet] = useMutation(LIKE_TWEET, {
     variables: { tweetId: id },
@@ -133,6 +133,8 @@ export default function Tweet({
   return (
     <div className="p-4 hover:bg-gray-50 transition-colors cursor-pointer">
       <div className="flex gap-3">
+        {/* Image de profil de l'auteur */}
+        {author?.profile_img ? 
         <Image
           src={author?.profile_img || "/placeholder.png"}
           alt={`${author?.username}'s profile`}
@@ -140,23 +142,29 @@ export default function Tweet({
           height={48}
           className="w-12 h-12 rounded-full object-cover"
         />
+        :
+        <div className="w-12 h-12 rounded-full border-2 border-gray-300 shadow-md 
+            bg-blue-500 flex items-center justify-center text-white font-bold">
+                {author?.username.charAt(0).toUpperCase() || 'U'}
+        </div>
+        }
         <div className="flex-1">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="font-bold">{author.username}</span>
-              <span className="text-gray-500">@{author.username}</span>
+              <span className="text-gray-500">@{author.handle}</span>
               <span className="text-gray-500">· {timeAgo(createdAt, "fr")}</span>
             </div>
             {/* follow button */}
-            {!(appState?.user?._id === author._id) &&(
+            {appState?.isLoggedIn && appState?.user?._id !== author._id && (
             <button
               onClick={handleFollow}
-              disabled={!appState?.isLoggedIn || loading}
+              disabled={loading}
               className={`flex items-center gap-1 px-3 py-1 text-sm font-medium 
-                ${isFollowing ? "bg-blue-500 text-white" : "bg-black text-white"} 
-                rounded-full hover:bg-gray-800 transition`} >
-                {isFollowing ? <CheckIcon className="w-4 h-4" /> : <UserPlusIcon className="w-4 h-4" />}
-                {isFollowing ? "Following" : "Follow"}
+              ${isFollowing ? "bg-blue-500 text-white" : "bg-black text-white"} 
+              rounded-full hover:bg-gray-800 transition`} >
+              {isFollowing ? <CheckIcon className="w-4 h-4" /> : <UserPlusIcon className="w-4 h-4" />}
+              {isFollowing ? "Following" : "Follow"}
             </button>)}
           </div>
       

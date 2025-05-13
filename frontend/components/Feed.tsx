@@ -7,7 +7,7 @@ import TweetsList from "./TweetList";
 import Tabs from "./Tabs";
 import { useAppContext } from "@/app/context/AppContext";
 import { GET_TWEETS, GET_ALL_TWEETS } from "@/graphql/queries";
-// import { serverHooks } from "next/dist/server/app-render/entry-base";
+import { useAuth } from "@/app/context/AuthContext";
 
 export default function Feed() {
   // const [activeTab, setActiveTab] = useState("forYou");
@@ -18,6 +18,7 @@ export default function Feed() {
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { appState } = useAppContext();
+  const { isLoggedIn, accessToken } = useAuth();
 
   const [mediaTypes] = useState("image/*,video/*");
 
@@ -26,26 +27,12 @@ export default function Feed() {
   // });
   // Choix de la requête en fonction de l'état de connexion
   // console.log(appState?.isLoggedIn);
-  const { data, loading, error } = useQuery(appState?.isLoggedIn ? GET_TWEETS : GET_ALL_TWEETS, {
+  const { data, loading, error } = useQuery(isLoggedIn ? GET_TWEETS : GET_ALL_TWEETS, {
     fetchPolicy: "cache-and-network",
     onCompleted: (data) => {
       console.log("✅ Query completed:", data);
     },
   });
-
-//   const followingUsersMap = useMemo(() => {
-//   const map: Record<string, boolean> = {};
-//   const userIds = data?.getTimeline?.followingUsers;
-//   if (Array.isArray(userIds)) {
-//     userIds.forEach((userId) => {
-//       if (typeof userId === "string") {
-//         map[userId] = true;
-//       }
-//     });
-//   }
-
-//   return map;
-// }, [data]);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -65,7 +52,7 @@ export default function Feed() {
   }, []);
 
   const handlePostTweet = useCallback(async () => {
-    if (!appState?.isLoggedIn) return;
+    if (!isLoggedIn) return;
     if (!newTweet.trim() && !selectedFile) return;
     setIsLoading(true);
     try {
@@ -75,7 +62,7 @@ export default function Feed() {
       const response = await fetch("http://localhost:5000/api/tweets", {
         method: "POST",
         body: formData,
-        headers: { Authorization: `Bearer ${appState.token}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (!response.ok) throw new Error(await response.text());
       setNewTweet("");
@@ -85,7 +72,7 @@ export default function Feed() {
     } finally {
       setIsLoading(false);
     }
-  }, [newTweet, selectedFile, removeSelectedFile, appState]);
+  }, [newTweet, selectedFile, removeSelectedFile, accessToken]);
 
   return (
       <div className="flex justify-center w-full">
@@ -94,7 +81,8 @@ export default function Feed() {
           {error && <div className="bg-red-500 text-white p-2 rounded mb-2">{error.message}</div>}
           <div className="p-4 rounded-lg border border-gray-300 bg-gray-50">
           <textarea
-              className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-900 
+              placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="What's happening?"
               value={newTweet}
               onChange={(e) => setNewTweet(e.target.value)}
@@ -102,7 +90,7 @@ export default function Feed() {
           />
             {filePreview && (
                 <div className="relative mt-2 mb-2">
-                  {selectedFile.type.startsWith("image/") ? (
+                  {selectedFile?.type.startsWith("image/") ? (
                       <img src={filePreview} alt="Preview" className="w-full max-h-80 rounded-lg object-contain" />
                   ) : (
                       <video src={filePreview} controls className="w-full max-h-80 rounded-lg" />
@@ -126,7 +114,8 @@ export default function Feed() {
               </div>
               
               <button
-                  className={`px-4 py-2 rounded text-white ${newTweet.trim() || selectedFile ? "bg-blue-500 hover:bg-blue-600" : "bg-gray-400 cursor-not-allowed"}`}
+                  className={`px-4 py-2 rounded text-white ${newTweet.trim() || selectedFile ? 
+                    "bg-blue-500 hover:bg-blue-600" : "bg-gray-400 cursor-not-allowed"}`}
                   onClick={handlePostTweet}
                   disabled={!newTweet.trim() && !selectedFile || isLoading}
               >
@@ -134,19 +123,19 @@ export default function Feed() {
               </button>
             </div>
           </div>
-          {appState?.isLoggedIn ? (
+          {isLoggedIn ? (
           <TweetsList 
             tweets={data?.getTimeline?.tweets || []}
             loading={loading}
             followingUsers={data?.getTimeline?.followingUsers}
           />
-        ) : (
-          <TweetsList 
-            tweets={data?.publicTimeline || []}
-            loading={loading}
-            followingUsers={[]}
-          />
-        )}
+          ) : (
+            <TweetsList 
+              tweets={data?.publicTimeline || []}
+              loading={loading}
+              followingUsers={[]}
+            />
+          )}
         </div>
       </div>
   );

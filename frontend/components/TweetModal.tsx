@@ -12,19 +12,21 @@ import {
 } from "@heroicons/react/24/outline"
 import { useRef, useEffect, useState } from "react"
 import { useAppContext } from "@/app/context/AppContext"
-import { Comment, TweetData } from "@/types/types"
+import { CommentModel } from "@/types/types"
+import { TweetModel } from "@/types/TweetModel"
 import { timeAgo } from "@/utils/timeAgo"
+import Image from "next/image"
 
 /**
  * Interface pour les propriétés du composant TweetModal
  * @interface TweetModalProps
  */
 interface TweetModalProps {
-    tweet: TweetData
-    comments: Comment[]
+    tweet: TweetModel
+    comments: CommentModel[]
     onClose: () => void
     loading: boolean
-    error: any
+    error: Error | undefined
 }
 
 /**
@@ -35,7 +37,7 @@ interface TweetModalProps {
 export default function TweetModal({ tweet, comments, loading, error, onClose }: TweetModalProps) {
     // États pour la gestion des commentaires
     const [newComment, setNewComment] = useState("")
-    const [commentList, setCommentList] = useState<Comment[]>(comments)
+    const [commentList, setCommentList] = useState<CommentModel[]>(comments)
     const [isSubmitting, setIsSubmitting] = useState(false)
     console.log("comments", commentList)// Debug
     
@@ -95,7 +97,11 @@ export default function TweetModal({ tweet, comments, loading, error, onClose }:
             setNewComment(""); // Réinitialisation du champ de saisie
         } catch (error) {
             console.error("Erreur:", error);
-            alert(`Impossible d'ajouter le commentaire : ${error.message}`)
+            if (error instanceof Error) {
+                alert(`Impossible d'ajouter le commentaire : ${error.message}`);
+            } else {
+                alert("Impossible d'ajouter le commentaire : Une erreur inconnue s'est produite.");
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -121,16 +127,20 @@ export default function TweetModal({ tweet, comments, loading, error, onClose }:
                 {/* Contenu du tweet */}
                 <div className="border-b pb-4">
                     <div className="flex gap-3">
-                        <img
-                            src="/next.svg"
-                            alt="Profile"
+                        {/* Image de profil de l'auteur */}
+                        <Image
+                            src={tweet.author.profile_img || "/placeholder.png"}
+                            alt={`${tweet.author.username}'s profile`}
+                            width={48}
+                            height={48}
                             className="w-12 h-12 rounded-full object-cover"
                         />
+                        {/* Informations sur l'auteur et le tweet */}
                         <div className="flex-1">
                             <div className="flex items-center gap-2">
-                                <span className="font-bold">{tweet.username}</span>
-                                <span className="text-gray-500">{tweet.handle}</span>
-                                <span className="text-gray-500">· {tweet.time}</span>
+                                <span className="font-bold">{tweet.author?.username}</span>
+                                <span className="text-gray-500">@{tweet.author?.handle}</span>
+                                <span className="text-gray-500">· {timeAgo(tweet.createdAt)}</span>
                             </div>
                             <p className="mt-2 text-lg">{tweet.content}</p>
                         </div>
@@ -178,23 +188,37 @@ export default function TweetModal({ tweet, comments, loading, error, onClose }:
                     <h4 className="font-semibold text-lg">Commentaires</h4>
                     {commentList.length > 0 ? (
                         commentList.map((comment, index) => (
-                            <div key={comment.id | index} className="p-3 border rounded-lg">
+                            <div key={index} className="p-3 border rounded-lg">
                                 <div className="flex items-center gap-2">
-                                    <img src={comment.author?.profile_img} alt="Profile" className="w-8 h-8 rounded-full" />
+                                    {/* Image de profil de l'auteur du commentaire */}
+                                    {comment.author?.profile_img?
+                                    <Image 
+                                        src={comment.author?.profile_img || "/placeholder.png"} 
+                                        alt="Profile" 
+                                        width={32}
+                                        height={32}
+                                        className="w-8 h-8 rounded-full"
+                                    /> :
+                                    <div className="w-12 h-12 rounded-full border-2 border-gray-300 shadow-md 
+                                    bg-blue-500 flex items-center justify-center text-white font-bold">
+                                        {comment?.author?.username.charAt(0).toUpperCase() || 'U'}
+                                    </div>
+                                    }
                                     <div>
                                         <span className="font-bold">{comment.author?.username}</span>
                                         <span className="text-gray-500 text-sm"> @{comment.author?.handle}</span>
                                     </div>
                                 </div>
                                 <p className="text-gray-700 mt-2">{comment.content}</p>
-                                <span className="text-gray-500 text-xs">{timeAgo(comment.createdAt, "fr")}</span>
+                                <span className="text-gray-500 text-xs">{timeAgo(comment.createdAt)}</span>
                             </div>
                         ))
                     ) : (
-                        <p className="text-gray-500">Aucun commentaire pour l'instant.</p>
+                        <p className="text-gray-500">Aucun commentaire pour l&apos;instant.</p>
                     )}
                 </div>
                 )}
+                {error && <p className="text-red-500 text-center mt-4">{error.message}</p>}
             </div>
         </div>
     );

@@ -9,6 +9,8 @@ const dotenv = require('dotenv')  // Chargement des variables d'environnement
 const bodyParser = require('body-parser')  // Middleware pour analyser les corps de requêtes HTTP
 const fs = require("fs")  // Module pour travailler avec le système de fichiers
 const { graphqlUploadExpress } = require('graphql-upload')  // Middleware pour gérer les uploads avec GraphQL
+const cookieParser = require("cookie-parser");
+
 
 // Import des routes de l'application
 const tweetsRoute = require('./routes/tweetsRoute')  // Routes pour les tweets
@@ -26,7 +28,18 @@ const app = express()
 app.use(bodyParser.json())  // Analyse des requêtes JSON
 app.use(express.json())  // Alternative à bodyParser pour les requêtes JSON
 app.use(express.urlencoded({ extended: true }))  // Analyse des données URL-encoded
-app.use(cors())  // Activation du CORS pour permettre les requêtes cross-origin
+app.use(cors(
+    {
+        origin: process.env.FRONTEND_URL || "http://localhost:3000",  // Autorise les requêtes depuis l'URL du frontend
+        credentials: true,  // Autorise les cookies et les informations d'authentification
+    }
+))  // Activation du CORS pour permettre les requêtes cross-origin
+app.use(cookieParser());  // Middleware pour analyser les cookies
+
+app.post("/api/auth/debug-token", (req, res) => {
+  console.log("Cookies:", req.cookies); // Assure-toi que cookie-parser est utilisé
+  res.json({ cookies: req.cookies });
+});
 
 // Configuration spécifique pour les routes d'API
 app.use("/api", express.json());  // Analyse JSON pour les routes /api

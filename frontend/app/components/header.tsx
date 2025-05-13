@@ -7,7 +7,10 @@
 import {useState} from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAppContext } from '../context/AppContext';
+// import { useAppContext } from '../context/AppContext';
+import { useUserContext } from '../context/UserContext';
+import { useAuth } from '../context/AuthContext';
+import Image from 'next/image';
 
 /**
  * Composant Header réutilisable
@@ -17,7 +20,10 @@ export default function Header() {
     // État pour gérer l'ouverture/fermeture du menu déroulant
     const [menuOpen, setMenuOpen] = useState(false);
     // Contexte global de l'application pour accéder aux données utilisateur
-    const { appState, setUser } = useAppContext();
+    // const { appState, setUser } = useAppContext();
+    const { isLoggedIn } = useAuth();
+    const { user, setUser } = useUserContext();
+    const { accessToken } = useAuth();
     // Hook de navigation
     const router = useRouter();
 
@@ -27,7 +33,7 @@ export default function Header() {
      */
     async function logOut() {
         // Effacement des données utilisateur du contexte
-        setUser(null, null)
+        setUser(null)
 
         // Appel de l'API de déconnexion
         try {
@@ -35,6 +41,7 @@ export default function Header() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
                 },
             });
             const data = await res.json();
@@ -50,6 +57,7 @@ export default function Header() {
         // Redirection vers la page d'accueil
         router.replace('/');
     }
+    console.log("User in header:", user)
 
     return (
         <header className="bg-white shadow-md p-6 flex justify-between items-center fixed top-0 w-full z-50 border-b">
@@ -67,18 +75,21 @@ export default function Header() {
 
             {/* Menu utilisateur (dropdown) */}
             <div className="relative">
-                {appState?.isLoggedIn ? (
+                {isLoggedIn ? (
                     // Si l'utilisateur est connecté : affichage de l'avatar ou des initiales
                     <button onClick={() => setMenuOpen(!menuOpen)} className="flex items-center space-x-3">
-                        {appState?.user?.profile_img ? (
-                            <img
-                                src={appState?.user.profile_img}
+                        {user?.profile_img ? (
+                            <Image
+                                src={user?.profile_img || '/placeholder.png'}
+                                width={48}
+                                height={48}
                                 alt="Profile"
                                 className="w-12 h-12 rounded-full border-2 border-gray-300 shadow-md"
                             />
                         ) : (
-                            <div className="w-12 h-12 rounded-full border-2 border-gray-300 shadow-md bg-blue-500 flex items-center justify-center text-white font-bold">
-                                {appState?.user?.username?.charAt(0).toUpperCase() || 'U'}
+                            <div className="w-12 h-12 rounded-full border-2 border-gray-300 shadow-md 
+                            bg-blue-500 flex items-center justify-center text-white font-bold">
+                                {user?.username?.charAt(0).toUpperCase() || 'U'}
                             </div>
                         )}
                     </button>

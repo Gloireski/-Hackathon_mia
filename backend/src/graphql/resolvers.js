@@ -23,9 +23,8 @@ const resolvers = {
   Query: {
     publicTimeline: async () => {
       try {
-        
           const tweets = await Tweet.find({})
-            .populate("author", "id username profile_img")
+            .populate("author", "username profile_img handle")
             .sort({ createdAt: -1 });
   
           return tweets.map((tweet) => {
@@ -43,10 +42,10 @@ const resolvers = {
               author: {
                 _id: tweet.author._id,
                 username: tweet.author.username,
+                handle: tweet.author.handle,
                 profile_img: tweet.author.profile_img,
               },
               comments: tweet.comments.map((comment) => comment._id),
-            
           }
         })
       } catch (error) {
@@ -64,7 +63,7 @@ const resolvers = {
     
         const userData = await User.findById(user.id);
         if (!userData) throw new Error("Utilisateur introuvable")
-    
+
         const tweets = await Tweet.find({ author: user.id })
           .populate("author", "username profile_img")
           .populate("comments")
@@ -94,7 +93,8 @@ const resolvers = {
               ...tweet.author._doc,
               id: tweet.author._id.toString()
           } : null, // Gérer le cas où l'auteur est null
-          comments: tweet.comments.map((comment) => comment.id),
+          comments: tweet.comments.map((comment) => ({
+              ...comment._doc,})),
           // followingUsers: tweet.followingUsers.map((user) => user.id),
         });
     

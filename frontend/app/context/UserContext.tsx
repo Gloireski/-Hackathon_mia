@@ -6,47 +6,55 @@ import { User } from '@/types/user'
 import { GET_USER } from '@/graphql/queries'
 import { useQuery } from '@apollo/client'
 
-interface userContextType {
+interface UserContextType {
     user: User | null
     setUser: (user: User | null) => void
+    loadingUser: boolean
+    refetchUser: () => void
 }
-const UserContext = createContext<userContextType | null>(null);
 
-export const UserProvider = ({ children } : { children: ReactNode}) => {
+const UserContext = createContext<UserContextType | null>(null)
+
+export const UserProvider = ({ children }: { children: ReactNode }) => {
+    const { accessToken, logout } = useAuth()
     const [user, setUser] = useState<User | null>(null)
-    const { accessToken } = useAuth()
 
-    const { data, loading } = useQuery(GET_USER, {
+    const { data, loading, error, refetch } = useQuery(GET_USER, {
         skip: !accessToken,
         context: {
             headers: {
                 Authorization: `Bearer ${accessToken}`,
             },
         },
-    });
+        fetchPolicy: 'network-only', // important pour éviter les données obsolètes
+    })
 
     useEffect(() => {
         if (data?.getCurrentUser) {
-            console.log("Fetched user:", data.getCurrentUser);
-            setUser(data.getCurrentUser);
+            setUser(data.getCurrentUser)
         }
-    }, [data]);
+    }, [data])
 
-    if (accessToken && loading) {
-        return <div>Loading user...</div>; // ou spinner
-    }
+    useEffect(() => {
+        if (error) {
+            console.error("GET_USER error:", error)
+            // Peut-être une 401 ? Token expiré
+            logout()
+            setUser(null)
+        }
+    }, [error])
 
     return (
-        <UserContext.Provider value={{ user, setUser }}>
+        <UserContext.Provider value={{ user, setUser, loadingUser: loading, refetchUser: refetch }}>
             {children}
         </UserContext.Provider>
     )
 }
 
 export const useUserContext = () => {
-    const context = useContext(UserContext);
+    const context = useContext(UserContext)
     if (!context) {
-        throw new Error('useUser must be used within a UserProvider');
+        throw new Error('useUserContext must be used within a UserProvider')
     }
-    return context;
+    return context
 }

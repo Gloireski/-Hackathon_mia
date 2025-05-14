@@ -117,8 +117,9 @@ const login = async (req, res) => {
         
         // Recherche de l'utilisateur par email
         const user = await User.findOne({ email });
-        console.log(user)
+        // console.log(user)
         if (!user) {
+            console.log("user not found")
             return res.status(401).json({ message: 'Email ou mot de passe incorrect' })
         }
         
@@ -126,24 +127,16 @@ const login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         
         if (!isMatch) {
+            console.log("password not match")
             return res.status(401).json({ message: 'Email ou mot de passe incorrect' })
         }
-
-        // // Vérification que l'email a été vérifié
-        // if (!user.isEmailVerified) {
-        //     return res.status(403).json({ 
-        //         message: 'Veuillez vérifier votre adresse email avant de vous connecter',
-        //         verificationRequired: true,
-        //         userId: user._id
-        //     });
-        // }
         
         // Génération des tokens d'accès et de rafraîchissement
         const { accessToken, refreshToken } = await tokenService.generateTokens(user)
 
          res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure: false, // secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
             path: 'api/auth/refresh-token',
             maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -179,16 +172,28 @@ const login = async (req, res) => {
  */
 const logout = async (req, res) => {
     try {
+        const { refreshToken } = req.cookies;
+        if (refreshToken) {
+            await tokenService.blacklistToken(refreshToken);
+        }
         // Récupération du token d'accès
         const token = req.headers.authorization.split(' ')[1]
-        console.log(token)
+        console.log('logout',token)
         
         // Mise en liste noire du token (invalidation)
         await tokenService.blacklistToken(token)
         
+        console.log('user id', req.user.id)
         // Révocation de tous les tokens de l'utilisateur
         await tokenService.revokeAllUserTokens(req.user.id)
-        
+
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: false, // secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            path: 'api/auth/refresh-token',
+        });
+
         res.status(200).json({ message: 'Déconnexion réussie' })
     } catch (error) {
         console.error('Erreur lors de la déconnexion:', error)
@@ -267,6 +272,9 @@ const refreshToken = async (req, res) => {
         
         if (error.message === 'Invalid refresh token') {
             return res.status(401).json({ message: 'Token de rafraîchissement invalide ou révoqué' })
+        }
+        if (error.name === 'InvalidRefreshToken') {
+            return res.status(401).json({ message: 'Token de rafraîchissement invalide ou révoqué' });
         }
         
         console.error('Erreur lors du rafraîchissement du token:', error)

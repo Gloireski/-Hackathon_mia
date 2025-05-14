@@ -42,10 +42,12 @@ export default function Header() {
         try {
             const res = await fetch('http://localhost:5000/api/auth/logout', {
                 method: 'POST',
+                credentials: 'include', // Assurez-vous d'inclure les cookies
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${accessToken}`
                 },
+                
             });
             const data = await res.json();
 

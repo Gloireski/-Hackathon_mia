@@ -103,7 +103,7 @@ const verifyToken = async (token) => {
         issuer: jwtConfig.issuer,
         audience: jwtConfig.audience
     })
-    
+    console.log("Decoded token:", decoded.id);
     return decoded
 }
 
@@ -115,6 +115,12 @@ const verifyToken = async (token) => {
  * @throws {Error} Si le token de rafraîchissement est invalide
  */
 const refreshAccessToken = async (refreshToken) => {
+    const isBlacklisted = await isTokenBlacklisted(refreshToken);
+    if (isBlacklisted) {
+        const err = new Error('Invalid refresh token');
+        err.name = 'InvalidRefreshToken';
+        throw err;
+    }
     try {
         // Vérification du token de rafraîchissement
         const decoded = jwt.verify(refreshToken, jwtConfig.secret, {

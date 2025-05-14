@@ -1,6 +1,5 @@
-// lib/axios.ts
-import axios from "axios";
-import { getAccessToken, setAccessToken } from "./tokenUtils"; // utility we'll define
+import axios from 'axios';
+import { getAccessToken, setAccessToken, getAuthFailed } from './tokenUtils';
 
 const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 
@@ -9,7 +8,6 @@ const instance = axios.create({
   withCredentials: true,
 });
 
-// Request interceptor to add token
 instance.interceptors.request.use((config) => {
   const token = getAccessToken();
   if (token) {
@@ -18,19 +16,22 @@ instance.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor to refresh token if expired
 instance.interceptors.response.use(
   (res) => res,
   async (err) => {
     const originalConfig = err.config;
+
     if (err.response?.status === 401 && !originalConfig._retry) {
+      // 🚫 Si l'auth a échoué, ne pas faire de refresh
+      if (getAuthFailed()) {
+        return Promise.reject(err);
+      }
+
       originalConfig._retry = true;
       try {
-        const res = await axios.post(
-          'api/auth/refresh-token',
-          {},
-          { withCredentials: true }
-        );
+        const res = await axios.post(`${serverUrl}/api/auth/refresh-token`, {}, {
+          withCredentials: true,
+        });
         const newToken = res.data.accessToken;
         setAccessToken(newToken);
         originalConfig.headers.Authorization = `Bearer ${newToken}`;

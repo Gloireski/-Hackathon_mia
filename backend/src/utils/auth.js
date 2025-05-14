@@ -6,6 +6,7 @@ const dotenv = require('dotenv')  // Gestion des variables d'environnement
 const { User } = require('../models/users')  // Modèle des utilisateurs
 const jwt = require('jsonwebtoken')  // Bibliothèque pour gérer les JWT
 const redis = require('../config/redis')  // Client Redis
+const { isTokenBlacklisted } = require('../services/tokenService')  // Service de gestion des tokens
 
 // Chargement des variables d'environnement
 dotenv.config()
@@ -40,7 +41,7 @@ const verifyToken = async (req) => {
     const token = authHeader.split(" ")[1]
     
     // Vérification si le token est dans la liste noire
-    const isBlacklisted = await redis.get(`blacklist:${token}`);
+    const isBlacklisted = await isTokenBlacklisted(token)
     if (isBlacklisted) {
         throw new Error("Session expirée. Veuillez vous reconnecter.");
     }

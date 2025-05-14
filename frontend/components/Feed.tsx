@@ -30,6 +30,9 @@ export default function Feed() {
     onCompleted: (data) => {
       console.log("✅ Query completed:", data);
     },
+    onError: (error) => {
+      console.log("❌ Query error:", error);
+    }
   });
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,49 +81,58 @@ export default function Feed() {
           <Tabs setActiveTab={setActiveTabTyped} activeTab={activeTabTyped} />
           {error && <div className="bg-red-500 text-white p-2 rounded mb-2">{error.message}</div>}
           <div className="p-4 rounded-lg border border-gray-300 bg-gray-50">
-          <textarea
-              className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-900 
-              placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="What's happening?"
-              value={newTweet}
-              onChange={(e) => setNewTweet(e.target.value)}
-              disabled={isLoading}
-          />
-            {filePreview && (
-                <div className="relative mt-2 mb-2">
-                  {selectedFile?.type.startsWith("image/") ? (
-                      <img src={filePreview} alt="Preview" className="w-full max-h-80 rounded-lg object-contain" />
-                  ) : (
-                      <video src={filePreview} controls className="w-full max-h-80 rounded-lg" />
-                  )}
+            {isLoggedIn ? (
+              <>
+              <textarea
+                  className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-900 
+                  placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="What's happening?"
+                  value={newTweet}
+                  onChange={(e) => setNewTweet(e.target.value)}
+                  disabled={isLoading}
+              />
+                {filePreview && (
+                    <div className="relative mt-2 mb-2">
+                      {selectedFile?.type.startsWith("image/") ? (
+                          <img src={filePreview} alt="Preview" className="w-full max-h-80 rounded-lg object-contain" />
+                      ) : (
+                          <video src={filePreview} controls className="w-full max-h-80 rounded-lg" />
+                      )}
+                      <button
+                          onClick={removeSelectedFile}
+                          className="absolute top-2 right-2 bg-gray-900 bg-opacity-70 rounded-full p-1 text-white"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                )}
+                <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept={mediaTypes} className="hidden" />
+                <div className="flex items-center justify-between mt-2">
+                  <div className="flex space-x-3 text-blue-500">
+                    {[Image, FileImage, BarChart, Smile, Camera, MapPin].map((Icon, index) => (
+                        <button key={index} className="hover:text-blue-400" onClick={triggerFileInput}>
+                          <Icon size={20} />
+                        </button>
+                    ))}
+                  </div>
+                  
                   <button
-                      onClick={removeSelectedFile}
-                      className="absolute top-2 right-2 bg-gray-900 bg-opacity-70 rounded-full p-1 text-white"
+                      className={`px-4 py-2 rounded text-white ${newTweet.trim() || selectedFile ? 
+                        "bg-blue-500 hover:bg-blue-600" : "bg-gray-400 cursor-not-allowed"}`}
+                      onClick={handlePostTweet}
+                      disabled={!newTweet.trim() && !selectedFile || isLoading}
                   >
-                    ✕
+                    {isLoading ? "Posting..." : "Post"}
                   </button>
                 </div>
+            </>
+            ) : (
+               <p className="text-center text-gray-500">
+                Connecte-toi pour publier un tweet.
+              </p>
             )}
-            <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept={mediaTypes} className="hidden" />
-            <div className="flex items-center justify-between mt-2">
-              <div className="flex space-x-3 text-blue-500">
-                {[Image, FileImage, BarChart, Smile, Camera, MapPin].map((Icon, index) => (
-                    <button key={index} className="hover:text-blue-400" onClick={triggerFileInput}>
-                      <Icon size={20} />
-                    </button>
-                ))}
-              </div>
-              
-              <button
-                  className={`px-4 py-2 rounded text-white ${newTweet.trim() || selectedFile ? 
-                    "bg-blue-500 hover:bg-blue-600" : "bg-gray-400 cursor-not-allowed"}`}
-                  onClick={handlePostTweet}
-                  disabled={!newTweet.trim() && !selectedFile || isLoading}
-              >
-                {isLoading ? "Posting..." : "Post"}
-              </button>
-            </div>
           </div>
+          
           {isLoggedIn ? (
           <TweetsList 
             tweets={data?.getTimeline?.tweets || []}

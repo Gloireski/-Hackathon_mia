@@ -7,7 +7,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import Header from "./components/header"
 import Footer from "./components/footer"
-import { AppProvider } from "@/app/context/AppContext"
+// import { AppProvider } from "@/app/context/AppContext"
 import { ApolloProviderWrapper } from "@/app/context/ApolloProviderWrapper"
 import ReactQueryProvider from "./context/QueryClientProvider"
 import { WebSocketProvider } from "./context/WebSocketProvider"
@@ -60,28 +60,28 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
       {/* Contexte global de l'application */}
-      <AppProvider>
-        <AuthProvider>
-          {/* Fournisseur d'authentification pour la gestion des tokens */}
-          {/* Fournisseur Apollo pour GraphQL */}
-          <ApolloProviderWrapper>
-            {/* Fournisseur d'utilisateur pour la gestion de l'utilisateur connecté */}
-            <UserProvider>
-            {/* Fournisseur React Query pour la gestion d'état */}
-              <ReactQueryProvider>
-                {/* En-tête commun à toutes les pages */}
-                <WebSocketProvider>
-                  <Header />
-                  {/* Contenu de la page actuelle */}
-                  {children}
-                  {/* Pied de page commun à toutes les pages */}
-                  <Footer />
-                </WebSocketProvider>
-              </ReactQueryProvider> 
-            </UserProvider>
-          </ApolloProviderWrapper>
-        </AuthProvider>
-      </AppProvider>
+      {/* <AppProvider> */}
+      <AuthProvider>
+        {/* Fournisseur d'authentification pour la gestion des tokens */}
+        {/* Fournisseur Apollo pour GraphQL */}
+        <ApolloProviderWrapper>
+          {/* Fournisseur d'utilisateur pour la gestion de l'utilisateur connecté */}
+          <UserProvider>
+          {/* Fournisseur React Query pour la gestion d'état */}
+            <ReactQueryProvider>
+              {/* En-tête commun à toutes les pages */}
+              <WebSocketProvider>
+                <Header />
+                {/* Contenu de la page actuelle */}
+                {children}
+                {/* Pied de page commun à toutes les pages */}
+                <Footer />
+              </WebSocketProvider>
+            </ReactQueryProvider> 
+          </UserProvider>
+        </ApolloProviderWrapper>
+      </AuthProvider>
+      {/* </AppProvider> */}
       </body>
     </html>
   );

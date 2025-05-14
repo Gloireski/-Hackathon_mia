@@ -35,7 +35,7 @@ export default function Tweet({
   const { user } = useUserContext()
   const { isLoggedIn } = useAuth()
 
-  console.log("Tweet props", media, author)
+  // console.log("Tweet props", media, author)
 
   const [likeTweet] = useMutation(LIKE_TWEET, {
     variables: { tweetId: id },

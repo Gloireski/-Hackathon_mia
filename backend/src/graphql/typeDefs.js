@@ -44,7 +44,7 @@ const typeDefs = gql`
   }
   type TimelineData {
     tweets: [TimelineResponse!]!
-    followingUsers: [ID]
+    followingUsers: [String!]!
   }
 
   # Type pour les tweets dans le timeline
@@ -95,6 +95,13 @@ const typeDefs = gql`
     profile_img: String
   }
   
+  # Type for suggested profile response
+  type SuggestedProfileResponse {
+    user: UserBasicInfo!
+    mutualFollowers: Int!
+    isFollowing: Boolean!
+  }
+  
   # Type pour les réponses de commentaires
   type CommentResponse {
     id: ID
@@ -107,6 +114,9 @@ const typeDefs = gql`
   type Query {
     # Récupère un tweet par son ID
     getTweet(id: ID!): TweetResponse
+    
+    # Get suggested profiles for the current user
+    getSuggestedProfiles: [SuggestedProfileResponse!]!
     
     # Recherche des tweets par texte
     searchTweets(query: String!): [Tweet]

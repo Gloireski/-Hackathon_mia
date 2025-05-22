@@ -5,7 +5,8 @@ const redis = require('../../../config/redis')
 const { wss } = require('../../../wsServer')
 const { handleUpload } = require('../../../utils/graphUpload')
 const mediaQueue = require('../../../queues/mediaQueue')
-const { sendNotification } = require('../../../wsServer')
+const { notificationQueue } = require('../../../queues/notificationQueue')
+
 
 const tweetMutations = {
   createTweet: async (_, { content, media, mentions, hashtags }, { req }) => {
@@ -70,7 +71,13 @@ const tweetMutations = {
 
     tweet.likes.push(userId)
     await tweet.save()
-    await sendNotification(tweet.author.toString(), `${user.username} a liké votre tweet!`)
+
+    if (tweet.author.toString() !== user.id) {
+      await notificationQueue.add({
+        recipientId: tweet.author.toString(),
+        message: `${user.username} a liké votre tweet!`,
+      })
+    }
   
     return {
       success: true,
@@ -86,6 +93,10 @@ const tweetMutations = {
       if (!user) throw new Error("Requiert authentification")
       const tweet = await Tweet.findById(tweetId);
       if (!tweet) throw new Error("Tweet non trouvé")
+      
+      if (tweet.author.toString() === user.id) {
+        throw new Error("Vous ne pouvez pas retweeter votre propre tweet.")
+      }
   
       const existingRetweet = await Tweet.findOne({
         originalTweet: tweetId,
@@ -124,6 +135,10 @@ const tweetMutations = {
   
       tweet.retweets.push(reTweet._id);
       await tweet.save();
+      await notificationQueue.add({
+        recipientId: tweet.author.toString(),
+        message: `${user.username} a retweeté votre tweet!`,
+      })
   
       return {
         success: true,

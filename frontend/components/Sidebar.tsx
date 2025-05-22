@@ -11,19 +11,18 @@ import { useWebSocketContext } from "@/app/context/WebSocketProvider"
 import { useEffect } from 'react'
 
 export default function Sidebar() {
-    const webSocketContext = useWebSocketContext()
-    const notifications = webSocketContext?.notifications || []
+    const { unreadNotifications } = useWebSocketContext()
     
     // Animation effect when new notifications arrive
     useEffect(() => {
         const badge = document.getElementById('notification-badge')
-        if (badge && notifications.length > 0) {
+        if (badge && unreadNotifications.length > 0) {
             badge.classList.add('scale-110')
             setTimeout(() => {
                 badge.classList.remove('scale-110')
             }, 200)
         }
-    }, [notifications.length])
+    }, [unreadNotifications.length])
 
     return (
         <div className="w-72 min-h-screen p-6 border-r bg-white shadow-md pt-11">
@@ -36,19 +35,19 @@ export default function Sidebar() {
                     { 
                         icon: <div className="relative">
                             <BellIcon className="h-6 w-6" />
-                            {notifications.length > 0 && (
+                            {unreadNotifications.length > 0 && (
                                 <span 
                                     id="notification-badge"
                                     className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center transition-transform duration-200"
-                                    title={`${notifications.length} notifications non lues`}
-                                    aria-label={`${notifications.length} notifications non lues`}
+                                    title={`${unreadNotifications.length} notifications non lues`}
+                                    aria-label={`${unreadNotifications.length} notifications non lues`}
                                 >
-                                    {notifications.length > 99 ? '99+' : notifications.length}
+                                    {unreadNotifications.length > 99 ? '99+' : unreadNotifications.length}
                                 </span>
                             )}
                         </div>,
                         text: "Notifications",
-                        hasNotification: notifications.length > 0
+                        hasNotification: unreadNotifications.length > 0
                     },
                     { icon: <EnvelopeIcon className="h-6 w-6" />, text: "Messages" },
                     { icon: <UserIcon className="h-6 w-6" />, text: "Profil" }

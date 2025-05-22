@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Service de gestion des notifications
  * Gère le stockage, la récupération et la suppression des notifications dans Redis
@@ -30,6 +32,82 @@ class NotificationService {
     // Définition d'une expiration de 2 jours (172800 secondes)
     // Cela permet de nettoyer automatiquement les anciennes notifications
     await redis.expire(key, 172800);
+  }
+
+  /**
+   * Ajoute une notification en attente pour un utilisateur
+   * @static
+   * @async
+   * @param {string} userId - ID de l'utilisateur destinataire
+   * @param {Object} notification - Objet notification à stocker
+   * @returns {Promise<void>}
+   */
+  static async addPendingNotification(userId, notification) {
+    const key = `pending:notifications:${userId}`;
+    const notificationString = JSON.stringify(notification);
+    
+    await redis.zadd(key, Date.now(), notificationString);
+    // Les notifications en attente expirent après 7 jours
+    await redis.expire(key, 604800);
+  }
+
+  /**
+   * Récupère les notifications en attente d'un utilisateur
+   * @static
+   * @async
+   * @param {string} userId - ID de l'utilisateur
+   * @returns {Promise<Array>} Liste des notifications en attente
+   */
+  static async getPendingNotifications(userId) {
+    const key = `pending:notifications:${userId}`;
+    return await redis.zrange(key, 0, -1);
+  }
+
+  /**
+   * Supprime une notification en attente
+   * @static
+   * @async
+   * @param {string} userId - ID de l'utilisateur
+   * @param {string} notificationId - ID de la notification
+   * @returns {Promise<void>}
+   */
+  static async removePendingNotification(userId, notificationId) {
+    const key = `pending:notifications:${userId}`;
+    const notifications = await redis.zrange(key, 0, -1);
+    
+    for (const notifString of notifications) {
+      const notif = JSON.parse(notifString);
+      if (notif.id === notificationId) {
+        await redis.zrem(key, notifString);
+        break;
+      }
+    }
+  }
+
+  /**
+   * Marque une notification comme lue
+   * @static
+   * @async
+   * @param {string} userId - ID de l'utilisateur
+   * @param {string} notificationId - ID de la notification
+   * @returns {Promise<void>}
+   */
+  static async markNotificationAsRead(userId, notificationId) {
+    const key = `notifications:${userId}`;
+    const notifications = await redis.zrange(key, 0, -1);
+    
+    for (const notifString of notifications) {
+      const notif = JSON.parse(notifString);
+      if (notif.id === notificationId) {
+        // Mettre à jour le statut de lecture
+        notif.read = true;
+        // Supprimer l'ancienne entrée
+        await redis.zrem(key, notifString);
+        // Ajouter la version mise à jour
+        await redis.zadd(key, Date.now(), JSON.stringify(notif));
+        break;
+      }
+    }
   }
 
   /**

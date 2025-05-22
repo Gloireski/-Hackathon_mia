@@ -19,7 +19,7 @@ import { useFollowingMap } from "@/hooks/useFollowingMap"
 interface TweetsListProps {
     tweets: TweetModel[];
     loading: boolean;
-    followingUsers: string[]
+    followingUsers: string[];
 }
 
 /**
@@ -27,13 +27,13 @@ interface TweetsListProps {
  * @param {TweetsListProps} props - Propriétés du composant
  * @returns {JSX.Element} - Composant rendu
  */
-export default function TweetsList({ tweets, loading, followingUsers }: TweetsListProps) {
+export default function TweetsList({ tweets, loading, followingUsers = [] }: TweetsListProps) {
     // État pour le tweet sélectionné (affiché dans le modal)
     const [selectedTweet, setSelectedTweet] = useState<TweetModel | null>(null);
     // État pour les commentaires du tweet sélectionné
     const [comments, setComments] = useState<CommentModel[]>([]);
     // État pour la liste des utilisateurs suivis (sous forme de map pour un accès rapide)
-    const { followingMap, toggleFollow} = useFollowingMap(followingUsers);
+    const { followingMap, toggleFollow} = useFollowingMap(followingUsers || []);
 
     // console.log("Following users:", followingUsers) // Debug;
     /**

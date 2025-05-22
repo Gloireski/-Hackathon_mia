@@ -4,94 +4,181 @@
  */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { gql, useQuery, useMutation } from "@apollo/client";
+
+/**
+ * GraphQL query to fetch suggested profiles
+ */
+const GET_SUGGESTED_PROFILES = gql`
+  query GetSuggestedProfiles {
+    getSuggestedProfiles {
+      user {
+        _id
+        username
+        handle
+        profile_img
+      }
+      mutualFollowers
+      isFollowing
+    }
+  }
+`;
+
+/**
+ * GraphQL mutation to follow/unfollow a user
+ */
+const FOLLOW_USER = gql`
+  mutation FollowUser($userId: ID!) {
+    follow(userId: $userId) {
+      success
+      following
+      followersCount
+    }
+  }
+`;
 
 /**
  * Interface définissant la structure d'un profil suggéré
- * @interface Profile
  */
 interface Profile {
-  username: string;
-  handle: string;
-  avatar: string;
+  user: {
+    _id: string;
+    username: string;
+    handle: string;
+    profile_img: string;
+  };
+  mutualFollowers: number;
   isFollowing: boolean;
 }
 
 /**
- * Données initiales de profils suggérés (mock data)
- */
-const initialProfiles: Profile[] = [
-  {
-    username: "ShawFCB",
-    handle: "@fcb_shaw",
-    avatar: "/avatars/shaw.jpg", // À remplacer par de vraies URLs
-    isFollowing: false,
-  },
-  {
-    username: "studiocyen.bsky.social",
-    handle: "@studiocyen",
-    avatar: "/avatars/studiocyen.jpg",
-    isFollowing: false,
-  },
-  {
-    username: "Darkheim® ✖️⚜️🍿",
-    handle: "@d4rkheim",
-    avatar: "/avatars/darkheim.jpg",
-    isFollowing: false,
-  },
-];
-
-/**
  * Composant qui affiche les profils suggérés avec possibilité de les suivre
- * @returns {JSX.Element} - Composant rendu
  */
 export default function SuggestedProfiles() {
-  // État local pour gérer la liste des profils et leurs statuts
-  const [profiles, setProfiles] = useState(initialProfiles);
+  // Query hook for fetching suggested profiles
+  const { data, loading, error } = useQuery(GET_SUGGESTED_PROFILES);
+  
+  // Mutation hook for following/unfollowing users
+  const [followUser] = useMutation(FOLLOW_USER);
+
+  // Local state to manage profiles
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+
+  console.log('profiles suggested', profiles)
+  // Update local state when data is fetched
+  useEffect(() => {
+    if (data?.getSuggestedProfiles) {
+      setProfiles(data.getSuggestedProfiles);
+    }
+  }, [data]);
 
   /**
    * Gère l'action de suivre/ne plus suivre un profil
-   * @param {number} index - Index du profil dans le tableau
    */
-  const handleFollowToggle = (index: number) => {
-    setProfiles((prevProfiles) =>
-        prevProfiles.map((profile, i) =>
-            // Inverse l'état isFollowing uniquement pour le profil concerné
-            i === index ? { ...profile, isFollowing: !profile.isFollowing } : profile
-        )
-    );
+  const handleFollowToggle = async (userId: string, index: number) => {
+    try {
+      const { data } = await followUser({
+        variables: { userId },
+        optimisticResponse: {
+          follow: {
+            success: true,
+            following: !profiles[index].isFollowing,
+            followersCount: 0,
+            __typename: "FollowResponse"
+          }
+        }
+      });
+
+      if (data?.follow?.success) {
+        setProfiles((prevProfiles) =>
+          prevProfiles.map((profile, i) =>
+            i === index
+              ? { ...profile, isFollowing: !profile.isFollowing }
+              : profile
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error following user:", error);
+    }
   };
 
-  return (
+  if (loading) {
+    return (
       <div className="bg-white p-6 rounded-lg shadow-md mt-6">
         <h2 className="font-bold text-gray-900 text-lg mb-3">Who to follow</h2>
-        
-        {/* Liste des profils suggérés */}
-        {profiles.map((profile, index) => (
-            <div key={index} className="flex items-center justify-between p-3 hover:bg-gray-100 rounded-lg transition">
-              {/* Informations du profil */}
+        <div className="animate-pulse">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center justify-between p-3">
               <div className="flex items-center gap-4">
-                <img src={profile.avatar} alt={profile.username} className="w-12 h-12 rounded-full object-cover border border-gray-300" />
+                <div className="w-12 h-12 bg-gray-200 rounded-full" />
                 <div>
-                  <p className="text-gray-900 font-semibold">{profile.username}</p>
-                  <p className="text-gray-500 text-sm">{profile.handle}</p>
+                  <div className="h-4 w-24 bg-gray-200 rounded mb-2" />
+                  <div className="h-3 w-20 bg-gray-200 rounded" />
                 </div>
               </div>
-              
-              {/* Bouton pour suivre/ne plus suivre */}
-              <button
-                  onClick={() => handleFollowToggle(index)}
-                  className={`px-5 py-2 text-sm font-medium rounded-full transition-all border border-gray-300 shadow-sm ${
-                      profile.isFollowing ? "bg-blue-500 text-white border-blue-500" : "bg-white text-gray-900 hover:bg-gray-200"
-                  }`}
-              >
-                {profile.isFollowing ? "Following" : "Follow"}
-              </button>
+              <div className="w-20 h-8 bg-gray-200 rounded-full" />
             </div>
-        ))}
-        
-        {/* Lien pour voir plus de suggestions */}
-        <p className="text-blue-600 text-sm mt-3 cursor-pointer hover:underline">Show more</p>
+          ))}
+        </div>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-md mt-6">
+        <p className="text-red-500">Error loading suggestions</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-md mt-6">
+      <h2 className="font-bold text-gray-900 text-lg mb-3">Suivez des utilisateurs</h2>
+      
+      {/* Liste des profils suggérés */}
+      {profiles.map((profile, index) => (
+        <div key={profile.user._id} className="flex items-center justify-between p-3 hover:bg-gray-100 rounded-lg transition">
+          {/* Informations du profil */}
+          <div className="flex items-center gap-4">
+            <img 
+              src={profile.user.profile_img || "/default-avatar.png"} 
+              alt={profile.user.username} 
+              className="w-12 h-12 rounded-full object-cover border border-gray-300" 
+            />
+            <div>
+              <p className="text-gray-900 font-semibold">{profile.user.username}</p>
+              <p className="text-gray-500 text-sm">{profile.user.handle}</p>
+              {profile.mutualFollowers > 0 && (
+                <p className="text-gray-400 text-xs mt-1">
+                  {profile.mutualFollowers} mutual follower{profile.mutualFollowers > 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+          </div>
+          
+          {/* Bouton pour suivre/ne plus suivre */}
+          <button
+            onClick={() => handleFollowToggle(profile.user._id, index)}
+            className={`px-5 py-2 text-sm font-medium rounded-full transition-all border border-gray-300 shadow-sm ${
+              profile.isFollowing 
+                ? "bg-blue-500 text-white border-blue-500 hover:bg-blue-600" 
+                : "bg-white text-gray-900 hover:bg-gray-200"
+            }`}
+          >
+            {profile.isFollowing ? "Following" : "Follow"}
+          </button>
+        </div>
+      ))}
+      
+      {/* Lien pour voir plus de suggestions */}
+      {profiles.length > 0 && (
+        <p className="text-blue-600 text-sm mt-3 cursor-pointer hover:underline">
+          Show more
+        </p>
+      )}
+    </div>
   );
 }

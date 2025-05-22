@@ -137,7 +137,7 @@ export default function Feed() {
           <TweetsList 
             tweets={data?.getTimeline?.tweets || []}
             loading={loading}
-            followingUsers={data?.getTimeline?.followingUsers}
+            followingUsers={Array.isArray(data?.getTimeline?.followingUsers) ? data.getTimeline.followingUsers : []}
           />
           ) : (
             <TweetsList 
